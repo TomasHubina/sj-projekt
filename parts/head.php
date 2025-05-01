@@ -5,7 +5,7 @@
         <meta name="description" content="">
         <meta name="author" content="">
 
-        <title>Barista Cafe HTML CSS Template</title>
+        <title>Zlaté zrnko - Prémiová pražiareň kávy</title>
 
         <!-- CSS FILES -->                
         <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -1,22 +1,16 @@
 <section class="hero-section d-flex justify-content-center align-items-center" id="section_1">
-
     <div class="container">
-        <div class="row align-items-center">
+        <div class="row">
 
-            <div class="col-lg-6 col-12 mx-auto">
-                <em class="small-text">welcome to Barista.co</em>
-                
-                <h1>Cafe Klang</h1>
+            <div class="col-lg-8 col-12 mx-auto">
+                <h1 class="text-white text-center">Zlaté zrnko</h1>
+                <h2 class="text-white text-center mb-4">Prémiová pražiareň kávy</h2>
 
-                <p class="text-white mb-4 pb-lg-2">
-                    your <em>favourite</em> coffee daily lives.
-                </p>
+                <div class="text-center">
+                    <a href="#section_2" class="btn custom-btn smoothscroll me-3">Spoznajte nás</a>
 
-                <a class="btn custom-btn custom-border-btn smoothscroll me-3" href="#section_2">
-                    Our Story
-                </a>
-
-                <a class="btn custom-btn smoothscroll me-2 mb-2" href="#section_3"><strong>Check Menu</strong></a>
+                    <a href="#section_order" class="btn custom-btn custom-border-btn smoothscroll">Objednať kávu</a>
+                </div>
             </div>
 
         </div>

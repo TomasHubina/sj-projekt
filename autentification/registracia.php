@@ -1,0 +1,162 @@
+<?php
+// Inicializácia session
+session_start();
+
+// Ak je používateľ prihlásený, presmerujeme ho na hlavnú stránku
+if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
+    header("location: ../index.php");  // Opravená cesta na index.php
+    exit;
+}
+
+// Pripojenie konfiguračného súboru
+require_once "../db/config.php";
+
+// Definícia premenných a inicializácia s prázdnymi hodnotami
+$meno = $heslo = $heslo_potvrdenie = "";
+$meno_err = $heslo_err = $heslo_potvrdenie_err = "";
+
+// Spracovanie údajov z formulára po odoslaní
+if($_SERVER["REQUEST_METHOD"] == "POST"){
+    // Validácia mena
+    if(empty(trim($_POST["meno"]))){
+        $meno_err = "Zadajte vaše meno.";
+    } else{
+        // Kontrola, či meno už existuje
+        $sql = "SELECT id FROM pouzivatelia WHERE meno = ?";
+        
+        if($stmt = mysqli_prepare($conn, $sql)){
+            mysqli_stmt_bind_param($stmt, "s", $param_meno);
+            $param_meno = trim($_POST["meno"]);
+            
+            if(mysqli_stmt_execute($stmt)){
+                mysqli_stmt_store_result($stmt);
+                
+                if(mysqli_stmt_num_rows($stmt) == 1){
+                    $meno_err = "Toto používateľské meno je už použité.";
+                } else{
+                    $meno = trim($_POST["meno"]);
+                }
+            } else{
+                echo "Ups! Niečo sa pokazilo. Skúste to neskôr.";
+            }
+            mysqli_stmt_close($stmt);
+        }
+    }
+    
+    // Validácia hesla
+    if(empty(trim($_POST["heslo"]))){
+        $heslo_err = "Zadajte heslo.";     
+    } elseif(strlen(trim($_POST["heslo"])) < 6){
+        $heslo_err = "Heslo musí mať aspoň 6 znakov.";
+    } else{
+        $heslo = trim($_POST["heslo"]);
+    }
+    
+    // Validácia potvrdenia hesla
+    if(empty(trim($_POST["heslo_potvrdenie"]))){
+        $heslo_potvrdenie_err = "Potvrďte heslo.";     
+    } else{
+        $heslo_potvrdenie = trim($_POST["heslo_potvrdenie"]);
+        if(empty($heslo_err) && ($heslo != $heslo_potvrdenie)){
+            $heslo_potvrdenie_err = "Heslá sa nezhodujú.";
+        }
+    }
+    
+    // Kontrola chýb pred vložením do databázy
+    if(empty($meno_err) && empty($heslo_err) && empty($heslo_potvrdenie_err)){
+        
+        // Pripravenie insert príkazu - iba pre existujúce stĺpce v databáze
+        $sql = "INSERT INTO pouzivatelia (meno, heslo) VALUES (?, ?)";
+         
+        if($stmt = mysqli_prepare($conn, $sql)){
+            // Naviazanie premenných na parametre prepared statementu
+            mysqli_stmt_bind_param($stmt, "ss", $param_meno, $param_heslo);
+            
+            // Nastavenie parametrov
+            $param_meno = $meno;
+            $param_heslo = password_hash($heslo, PASSWORD_DEFAULT); // Vytvorenie hash-u hesla
+            
+            // Pokus o vykonanie prepared statementu
+            if(mysqli_stmt_execute($stmt)){
+                // Presmerovanie na prihlasovaciu stránku
+                header("location: prihlasenie.php");
+                exit;
+            } else{
+                echo "Ups! Niečo sa pokazilo. Skúste to neskôr.";
+            }
+
+            // Zatvorenie statementu
+            mysqli_stmt_close($stmt);
+        }
+    }
+    
+    // Zatvorenie spojenia
+    mysqli_close($conn);
+}
+?>
+
+<!doctype html>
+<html lang="sk">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Registrácia - Gold Coffee</title>
+    
+    <!-- CSS -->                
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200;0,400;0,600;0,700;1,200;1,700&display=swap" rel="stylesheet">
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/bootstrap-icons.css" rel="stylesheet">
+    <link href="../css/vegas.min.css" rel="stylesheet">
+    <link href="../css/tooplate-barista.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="card bg-dark text-white">
+                    <div class="card-header text-center">
+                        <h2>Registrácia</h2>
+                        <a href="../index.php" class="text-white text-decoration-none">
+                            <i class="bi bi-arrow-left"></i> Späť na hlavnú stránku
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                            <div class="mb-3">
+                                <label for="meno" class="form-label">Používateľské meno</label>
+                                <input type="text" name="meno" class="form-control <?php echo (!empty($meno_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $meno; ?>" id="meno" required>
+                                <span class="invalid-feedback"><?php echo $meno_err; ?></span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="heslo" class="form-label">Heslo</label>
+                                <input type="password" name="heslo" class="form-control <?php echo (!empty($heslo_err)) ? 'is-invalid' : ''; ?>" id="heslo" required>
+                                <span class="invalid-feedback"><?php echo $heslo_err; ?></span>
+                                <div class="form-text text-light">Heslo musí obsahovať aspoň 6 znakov.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="heslo_potvrdenie" class="form-label">Potvrďte heslo</label>
+                                <input type="password" name="heslo_potvrdenie" class="form-control <?php echo (!empty($heslo_potvrdenie_err)) ? 'is-invalid' : ''; ?>" id="heslo_potvrdenie" required>
+                                <span class="invalid-feedback"><?php echo $heslo_potvrdenie_err; ?></span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <button type="submit" class="btn custom-btn w-100">Registrovať sa</button>
+                            </div>
+                            <p class="text-center">Už máte účet? <a href="prihlasenie.php" class="text-white">Prihláste sa</a></p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT FILES -->
+    <script src="../js/jquery.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/custom.js"></script>
+</body>
+</html>

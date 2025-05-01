@@ -1,84 +1,47 @@
-<footer class="site-footer">
-                    <div class="container">
-                        <div class="row">
+<section class="contact-section section-padding" id="section_5">
+    <div class="container">
+        <div class="row">   
 
-                            <div class="col-lg-4 col-12 me-auto">
-                                <em class="text-white d-block mb-4">Where to find us?</em>
+        <div class="col-lg-12 col-12">
+            <em class="text-white">Napíšte nám</em>
+                <h2 class="text-white mb-4 pb-lg-2">Kontakt</h2>
+        </div>
 
-                                <strong class="text-white">
-                                    <i class="bi-geo-alt me-2"></i>
-                                    Bandra West, Mumbai, Maharashtra 400050, India
-                                </strong>
+        <div class="col-lg-6 col-12">
+            <form action="#" method="post" class="custom-form contact-form" role="form">
 
-                                <ul class="social-icon mt-4">
-                                    <li class="social-icon-item">
-                                        <a href="#" class="social-icon-link bi-facebook">
-                                        </a>
-                                    </li>
-        
-                                    <li class="social-icon-item">
-                                        <a href="https://x.com/minthu" target="_new" class="social-icon-link bi-twitter">
-                                        </a>
-                                    </li>
+        <div class="row">
+                                    
+        <div class="col-lg-6 col-12">
+            <label for="name" class="form-label">Meno <sup class="text-danger">*</sup></label>
 
-                                    <li class="social-icon-item">
-                                        <a href="#" class="social-icon-link bi-whatsapp">
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
+            <input type="text" name="name" id="name" class="form-control" placeholder="Vaše meno" required="">
+        </div>
 
-                            <div class="col-lg-3 col-12 mt-4 mb-3 mt-lg-0 mb-lg-0">
-                                <em class="text-white d-block mb-4">Contact</em>
+        <div class="col-lg-6 col-12">
+            <label for="email" class="form-label">E-mail</label>
 
-                                <p class="d-flex mb-1">
-                                    <strong class="me-2">Phone:</strong>
-                                    <a href="tel: 305-240-9671" class="site-footer-link">
-                                        (65) 
-                                        305 2409 671
-                                    </a>
-                                </p>
+            <input type="email" name="email" id="email" pattern="[^ @]*@[^ @]*" class="form-control" placeholder="vas@email.sk" required="">
+        </div>
 
-                                <p class="d-flex">
-                                    <strong class="me-2">Email:</strong>
+        <div class="col-12">
+            <label for="message" class="form-label">Ako vám môžeme pomôcť?</label>
 
-                                    <a href="mailto:info@yourgmail.com" class="site-footer-link">
-                                        hello@barista.co
-                                    </a>
-                                </p>
-                            </div>
+            <textarea name="message" rows="4" class="form-control" id="message" placeholder="Vaša správa" required=""></textarea>
+                                        
+        </div>
+    </div>
 
+    <div class="col-lg-5 col-12 mx-auto mt-3">
+        <button type="submit" class="form-control">Odoslať správu</button>
+    </div>
+    </form>
+</div>
 
-                            <div class="col-lg-5 col-12">
-                                <em class="text-white d-block mb-4">Opening Hours.</em>
+<div class="col-lg-6 col-12 mx-auto mt-5 mt-lg-0 ps-lg-5">
+    <iframe class="google-map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2613.9024560752444!2d18.08668807651453!3d48.30933283839388!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x476b3ee0556593fd%3A0xe96bdbdcf5e5abd!2sOC%20Mlyny%20Nitra!5e0!3m2!1ssk!2ssk!4v1714388035173!5m2!1ssk!2ssk" width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>  
+</div>
 
-                                <ul class="opening-hours-list">
-                                    <li class="d-flex">
-                                        Monday - Friday
-                                        <span class="underline"></span>
-
-                                        <strong>9:00 - 18:00</strong>
-                                    </li>
-
-                                    <li class="d-flex">
-                                        Saturday
-                                        <span class="underline"></span>
-
-                                        <strong>11:00 - 16:30</strong>
-                                    </li>
-
-                                    <li class="d-flex">
-                                        Sunday
-                                        <span class="underline"></span>
-
-                                        <strong>Closed</strong>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div class="col-lg-8 col-12 mt-4">
-                                <p class="copyright-text mb-0">Copyright © Barista Cafe 2048 
-                                    - Design: <a rel="sponsored" href="https://www.tooplate.com" target="_blank">Tooplate</a></p>
-                            </div>
-                    </div>
-                </footer>
+</div>
+</div>
+</section>
