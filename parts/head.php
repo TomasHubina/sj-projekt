@@ -5,7 +5,7 @@
         <meta name="description" content="">
         <meta name="author" content="">
 
-        <title>Zlaté zrnko - Prémiová pražiareň kávy</title>
+        <title>Gold Coffee</title>
 
         <!-- CSS FILES -->                
         <link rel="preconnect" href="https://fonts.googleapis.com">

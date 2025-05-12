@@ -192,31 +192,31 @@ $pouzivatelia = mysqli_fetch_assoc($result)['pocet'];
                                                         <th>Meno</th>
                                                         <th>Dátum</th>
                                                         <th>Suma</th>
-                                                        <th>Stav</th>
+                                                        <!--<th>Stav</th> -->
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <?php
                                                     $sql = "SELECT o.*, p.meno FROM objednavky o
-                                                            JOIN pouzivatelia p ON o.id = p.id
+                                                            JOIN pouzivatelia p ON o.objednavka_id = p.id
                                                             ORDER BY o.datum_vytvorenia DESC LIMIT 5";
                                                     $result = mysqli_query($conn, $sql);
                                                     
                                                     if(mysqli_num_rows($result) > 0) {
                                                         while($row = mysqli_fetch_assoc($result)) {
                                                             echo "<tr>";
-                                                            echo "<td>".$row['id']."</td>";
+                                                            echo "<td>".$row['objednavka_id']."</td>";
                                                             echo "<td>".$row['meno']."</td>";
                                                             echo "<td>".date('d.m.Y', strtotime($row['datum_vytvorenia']))."</td>";
                                                             echo "<td>".number_format($row['celkova_suma'], 2, ',', ' ')." €</td>";
                                                             
-                                                            $stav_trieda = "secondary";
+                                                            /*$stav_trieda = "secondary";
                                                             if($row['stav'] == 'vybavená') $stav_trieda = "success";
                                                             else if($row['stav'] == 'zrušená') $stav_trieda = "danger";
                                                             else if($row['stav'] == 'spracováva sa') $stav_trieda = "warning";
                                                             
                                                             echo "<td><span class='badge bg-".$stav_trieda."'>".$row['stav']."</span></td>";
-                                                            echo "</tr>";
+                                                            echo "</tr>";*/
                                                         }
                                                     } else {
                                                         echo "<tr><td colspan='5' class='text-center'>Žiadne objednávky</td></tr>";
@@ -226,7 +226,7 @@ $pouzivatelia = mysqli_fetch_assoc($result)['pocet'];
                                             </table>
                                         </div>
                                         <div class="text-end mt-3">
-                                            <a href="objednavky.php" class="btn custom-btn custom-border-btn">Všetky objednávky</a>
+                                            <a href="../objednavky.php" class="btn custom-btn custom-border-btn">Všetky objednávky</a>
                                         </div>
                                     </div>
                                 </div>
@@ -252,8 +252,8 @@ $pouzivatelia = mysqli_fetch_assoc($result)['pocet'];
                                                 <tbody>
                                                     <?php
                                                     $sql = "SELECT p.*, COUNT(op.id) as predane FROM produkty p
-                                                            LEFT JOIN objednavka_produkty op ON p.id = op.produkt_id
-                                                            GROUP BY p.id
+                                                            LEFT JOIN objednavka_produkty op ON p.produkt_id = op.produkt_id
+                                                            GROUP BY p.produkt_id
                                                             ORDER BY predane DESC
                                                             LIMIT 5";
                                                     $result = mysqli_query($conn, $sql);

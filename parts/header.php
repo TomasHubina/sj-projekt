@@ -3,7 +3,7 @@
         <div class="row">
 
             <div class="col-lg-8 col-12 mx-auto">
-                <h1 class="text-white text-center">Zlaté zrnko</h1>
+                <h1 class="text-white text-center">Gold Coffee</h1>
                 <h2 class="text-white text-center mb-4">Prémiová pražiareň kávy</h2>
 
                 <div class="text-center">
