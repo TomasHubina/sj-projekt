@@ -12,17 +12,17 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
 require_once "../db/config.php";
 
 // Definovanie premenných a inicializácia prázdnymi hodnotami
-$meno = $heslo = "";
-$meno_err = $heslo_err = $login_err = "";
+$email = $heslo = "";
+$email_err = $heslo_err = $login_err = "";
 
 // Spracovanie formulárových dát po odoslaní
 if($_SERVER["REQUEST_METHOD"] == "POST"){
  
     // Kontrola, či bolo zadané používateľské meno
-    if(empty(trim($_POST["meno"]))){
-        $meno_err = "Zadajte používateľské meno.";
+    if(empty(trim($_POST["email"]))){
+        $email_err = "Zadajte emailovú adresu.";
     } else{
-        $meno = trim($_POST["meno"]);
+        $email = trim($_POST["email"]);
     }
     
     // Kontrola, či bolo zadané heslo
@@ -33,16 +33,16 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
     
     // Validácia prihlasovacích údajov
-    if(empty($meno_err) && empty($heslo_err)){
+    if(empty($email_err) && empty($heslo_err)){
         // Príprava select výrazu - používa stĺpce ktoré existujú v databáze
-        $sql = "SELECT id, meno, heslo, je_admin FROM pouzivatelia WHERE meno = ?";
+        $sql = "SELECT id, meno, priezvisko, email, heslo, je_admin FROM pouzivatelia WHERE email = ?";
         
         if($stmt = mysqli_prepare($conn, $sql)){
             // Priradenie parametrov k prepare statement
-            mysqli_stmt_bind_param($stmt, "s", $param_meno);
+            mysqli_stmt_bind_param($stmt, "s", $param_email);
             
             // Nastavenie parametrov
-            $param_meno = $meno;
+            $param_email = $email;
             
             // Pokus o vykonanie prepared statement
             if(mysqli_stmt_execute($stmt)){
@@ -52,7 +52,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 // Kontrola, či meno existuje, ak áno - overenie hesla
                 if(mysqli_stmt_num_rows($stmt) == 1){                    
                     // Priradenie hodnôt z výsledku do premenných
-                    mysqli_stmt_bind_result($stmt, $id, $db_meno, $hashed_password, $je_admin);
+                    mysqli_stmt_bind_result($stmt, $id, $db_meno, $db_priezvisko, $db_email, $hashed_password, $je_admin);
                     if(mysqli_stmt_fetch($stmt)){
                         if(password_verify($heslo, $hashed_password)){
                             // Heslo je správne, začiatok novej session
@@ -62,18 +62,20 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                             $_SESSION["loggedin"] = true;
                             $_SESSION["id"] = $id;
                             $_SESSION["meno"] = $db_meno;
+                            $_SESSION["priezvisko"] = $db_priezvisko;
+                            $_SESSION["email"] = $db_email;
                             $_SESSION["je_admin"] = $je_admin;
                             
                             // Presmerovanie na hlavnú stránku
                             header("location: ../index.php");
                         } else{
                             // Heslo nie je platné, zobrazenie chybovej hlášky
-                            $login_err = "Neplatné používateľské meno alebo heslo.";
+                            $login_err = "Neplatný email alebo heslo.";
                         }
                     }
                 } else{
-                    // Meno neexistuje, zobrazenie chybovej hlášky
-                    $login_err = "Neplatné používateľské meno alebo heslo.";
+                    // Email neexistuje, zobrazenie chybovej hlášky
+                    $login_err = "Neplatný email alebo heslo.";
                 }
             } else{
                 echo "Ups! Niečo sa pokazilo. Skúste to prosím neskôr.";
@@ -125,9 +127,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
                         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                             <div class="mb-3">
-                                <label for="meno" class="form-label">Používateľské meno</label>
-                                <input type="text" name="meno" class="form-control <?php echo (!empty($meno_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $meno; ?>" required>
-                                <span class="invalid-feedback"><?php echo $meno_err; ?></span>
+                                <label for="email" class="form-label">Email</label>
+                                <input type="text" name="email" class="form-control <?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $email; ?>" required>
+                                <span class="invalid-feedback"><?php echo $email_err; ?></span>
                             </div>    
                             <div class="mb-3">
                                 <label for="heslo" class="form-label">Heslo</label>

@@ -165,144 +165,152 @@ mysqli_close($conn);
 <html lang="sk">
 <?php require_once "parts/head.php"; ?>
 <body>
-    <?php require_once "parts/nav.php"; ?>
     
-    <div class="container mt-5 pt-5">
-        <h1 class="mb-4">Dokončenie objednávky</h1>
-        
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">Dodacie údaje</h5>
+    
+    <main>
+        <section class="about-section" id="section_objednavka">
+            <?php require_once "parts/nav.php"; ?>
+            <div class="section-overlay"></div>
+            <div class="container">
+                <div class="row" >
+                    <div class="col-12">
+                        <em class="text-white">Finalizácia</em>
+                        <h2 class="text-white mb-4">Dokončenie objednávky</h2>
                     </div>
-                    <div class="card-body">
-                        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                            <div class="mb-3">
-                                <label for="adresa" class="form-label">Adresa</label>
-                                <input type="text" name="adresa" id="adresa" class="form-control <?php echo (!empty($adresa_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $adresa; ?>" required>
-                                <span class="invalid-feedback"><?php echo $adresa_err; ?></span>
+
+                    <div class="col-md-8">
+                        <div class="card bg-dark text-white mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0 text-white">Dodacie údaje</h5>
                             </div>
-                            
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="mesto" class="form-label">Mesto</label>
-                                    <input type="text" name="mesto" id="mesto" class="form-control <?php echo (!empty($mesto_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $mesto; ?>" required>
-                                    <span class="invalid-feedback"><?php echo $mesto_err; ?></span>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="psc" class="form-label">PSČ</label>
-                                    <input type="text" name="psc" id="psc" class="form-control <?php echo (!empty($psc_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $psc; ?>" required>
-                                    <span class="invalid-feedback"><?php echo $psc_err; ?></span>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="telefon" class="form-label">Telefón</label>
-                                <input type="tel" name="telefon" id="telefon" class="form-control <?php echo (!empty($telefon_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $telefon; ?>" required>
-                                <span class="invalid-feedback"><?php echo $telefon_err; ?></span>
-                            </div>
-                            
-                            <hr class="my-4">
-                            
-                            <h5>Spôsob doručenia</h5>
-                            <div class="mb-3 <?php echo (!empty($dorucenie_err)) ? 'is-invalid' : ''; ?>">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="dorucenie" id="dorucenie1" value="Kuriér" <?php echo ($dorucenie == "Kuriér") ? "checked" : ""; ?>>
-                                    <label class="form-check-label" for="dorucenie1">
-                                        Kuriér (4,90 €)
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="dorucenie" id="dorucenie2" value="Pošta" <?php echo ($dorucenie == "Pošta") ? "checked" : ""; ?>>
-                                    <label class="form-check-label" for="dorucenie2">
-                                        Slovenská pošta (3,50 €)
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="dorucenie" id="dorucenie3" value="Osobný odber" <?php echo ($dorucenie == "Osobný odber") ? "checked" : ""; ?>>
-                                    <label class="form-check-label" for="dorucenie3">
-                                        Osobný odber v predajni (0 €)
-                                    </label>
-                                </div>
-                                <span class="invalid-feedback"><?php echo $dorucenie_err; ?></span>
-                            </div>
-                            
-                            <hr class="my-4">
-                            
-                            <h5>Spôsob platby</h5>
-                            <div class="mb-3 <?php echo (!empty($platba_err)) ? 'is-invalid' : ''; ?>">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="platba" id="platba1" value="Dobierka" <?php echo ($platba == "Dobierka") ? "checked" : ""; ?>>
-                                    <label class="form-check-label" for="platba1">
-                                        Dobierka
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="platba" id="platba2" value="Bankový prevod" <?php echo ($platba == "Bankový prevod") ? "checked" : ""; ?>>
-                                    <label class="form-check-label" for="platba2">
-                                        Bankový prevod
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="platba" id="platba3" value="Platobná karta" <?php echo ($platba == "Platobná karta") ? "checked" : ""; ?>>
-                                    <label class="form-check-label" for="platba3">
-                                        Platobná karta online
-                                    </label>
-                                </div>
-                                <span class="invalid-feedback"><?php echo $platba_err; ?></span>
-                            </div>
-                            
-                            <hr class="my-4">
-                            
-                            <div class="mb-3">
-                                <label for="poznamka" class="form-label">Poznámka k objednávke (nepovinné)</label>
-                                <textarea name="poznamka" id="poznamka" class="form-control" rows="3"><?php echo $poznamka; ?></textarea>
-                            </div>
-                        
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">Objednávka</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <?php foreach($_SESSION['kosik'] as $item): ?>
-                                <li class="list-group-item d-flex justify-content-between lh-sm">
-                                    <div>
-                                        <h6 class="my-0"><?php echo htmlspecialchars($item['nazov']); ?></h6>
-                                        <small class="text-muted"><?php echo $item['mnozstvo']; ?> ks × <?php echo number_format($item['cena'], 2); ?> €</small>
+                            <div class="card-body">
+                                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                                    <div class="mb-3">
+                                        <label for="adresa" class="form-label">Adresa</label>
+                                        <input type="text" name="adresa" id="adresa" class="form-control bg-dark text-white <?php echo (!empty($adresa_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $adresa; ?>" required>
+                                        <span class="invalid-feedback"><?php echo $adresa_err; ?></span>
                                     </div>
-                                    <span class="text-muted"><?php echo number_format($item['cena'] * $item['mnozstvo'], 2); ?> €</span>
-                                </li>
-                            <?php endforeach; ?>
-                            
-                            <li class="list-group-item d-flex justify-content-between">
-                                <span>Spolu</span>
-                                <strong><?php echo number_format($celkova_suma, 2); ?> €</strong>
-                            </li>
-                        </ul>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="mesto" class="form-label">Mesto</label>
+                                            <input type="text" name="mesto" id="mesto" class="form-control bg-dark text-white <?php echo (!empty($mesto_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $mesto; ?>" required>
+                                            <span class="invalid-feedback"><?php echo $mesto_err; ?></span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="psc" class="form-label">PSČ</label>
+                                            <input type="text" name="psc" id="psc" class="form-control bg-dark text-white <?php echo (!empty($psc_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $psc; ?>" required>
+                                            <span class="invalid-feedback"><?php echo $psc_err; ?></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="telefon" class="form-label">Telefón</label>
+                                        <input type="tel" name="telefon" id="telefon" class="form-control bg-dark text-white <?php echo (!empty($telefon_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $telefon; ?>" required>
+                                        <span class="invalid-feedback"><?php echo $telefon_err; ?></span>
+                                    </div>
+                                    
+                                    <hr class="my-4 border-secondary">
+                                    
+                                    <h5 class="text-white">Spôsob doručenia</h5>
+                                    <div class="mb-3 <?php echo (!empty($dorucenie_err)) ? 'is-invalid' : ''; ?>">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="dorucenie" id="dorucenie1" value="Kuriér" <?php echo ($dorucenie == "Kuriér") ? "checked" : ""; ?>>
+                                            <label class="form-check-label" for="dorucenie1">
+                                                Kuriér (4,90 €)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="dorucenie" id="dorucenie2" value="Pošta" <?php echo ($dorucenie == "Pošta") ? "checked" : ""; ?>>
+                                            <label class="form-check-label" for="dorucenie2">
+                                                Slovenská pošta (3,50 €)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="dorucenie" id="dorucenie3" value="Osobný odber" <?php echo ($dorucenie == "Osobný odber") ? "checked" : ""; ?>>
+                                            <label class="form-check-label" for="dorucenie3">
+                                                Osobný odber v predajni (0 €)
+                                            </label>
+                                        </div>
+                                        <span class="invalid-feedback"><?php echo $dorucenie_err; ?></span>
+                                    </div>
+                                    
+                                    <hr class="my-4 border-secondary">
+                                    
+                                    <h5 class="text-white">Spôsob platby</h5>
+                                    <div class="mb-3 <?php echo (!empty($platba_err)) ? 'is-invalid' : ''; ?>">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="platba" id="platba1" value="Dobierka" <?php echo ($platba == "Dobierka") ? "checked" : ""; ?>>
+                                            <label class="form-check-label" for="platba1">
+                                                Dobierka
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="platba" id="platba2" value="Bankový prevod" <?php echo ($platba == "Bankový prevod") ? "checked" : ""; ?>>
+                                            <label class="form-check-label" for="platba2">
+                                                Bankový prevod
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="platba" id="platba3" value="Platobná karta" <?php echo ($platba == "Platobná karta") ? "checked" : ""; ?>>
+                                            <label class="form-check-label" for="platba3">
+                                                Platobná karta online
+                                            </label>
+                                        </div>
+                                        <span class="invalid-feedback"><?php echo $platba_err; ?></span>
+                                    </div>
+
+                                    <hr class="my-4 border-secondary">
+                                    
+                                    <div class="mb-3">
+                                        <label for="poznamka" class="form-label">Poznámka k objednávke (nepovinné)</label>
+                                        <textarea name="poznamka" id="poznamka" class="form-control bg-dark text-white" rows="3"><?php echo $poznamka; ?></textarea>
+                                    </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-footer">
-                        <button type="submit" class="btn btn-success btn-lg w-100">
-                            <i class="bi bi-check-circle"></i> Objednať s povinnosťou platby
-                        </button>
-                        </form>
+                    
+                    <div class="col-md-4">
+                        <div class="card bg-dark text-white mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0 text-white">Objednávka</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <?php foreach($_SESSION['kosik'] as $item): ?>
+                                        <li class="list-group-item d-flex justify-content-between lh-sm bg-dark text-white border-secondary">
+                                            <div>
+                                                <h6 class="my-0"><?php echo htmlspecialchars($item['nazov']); ?></h6>
+                                                <small class="text-light"><?php echo $item['mnozstvo']; ?> ks × <?php echo number_format($item['cena'], 2); ?> €</small>
+                                            </div>
+                                            <span class="text-light"><?php echo number_format($item['cena'] * $item['mnozstvo'], 2); ?> €</span>
+                                        </li>
+                                    <?php endforeach; ?>
+
+                                    <li class="list-group-item d-flex justify-content-between bg-dark text-white border-secondary">
+                                        <span>Spolu</span>
+                                        <strong><?php echo number_format($celkova_suma, 2); ?> €</strong>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-footer">
+                                <button type="submit" class="btn custom-btn w-100">
+                                    <i class="bi bi-check-circle"></i> Objednať s povinnosťou platby
+                                </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="kosik.php" class="text-white">
+                                <i class="bi bi-arrow-left"></i> Späť do košíka
+                            </a>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="text-center mt-3">
-                    <a href="kosik.php" class="text-decoration-none">
-                        <i class="bi bi-arrow-left"></i> Späť do košíka
-                    </a>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
     
     <?php require_once "parts/footer.php"; ?>
 </body>

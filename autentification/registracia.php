@@ -1,19 +1,17 @@
 <?php
-// Inicializácia session
 session_start();
 
 // Ak je používateľ prihlásený, presmerujeme ho na hlavnú stránku
 if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
-    header("location: ../index.php");  // Opravená cesta na index.php
+    header("location: ../index.php"); 
     exit;
 }
 
-// Pripojenie konfiguračného súboru
 require_once "../db/config.php";
 
 // Definícia premenných a inicializácia s prázdnymi hodnotami
-$meno = $heslo = $heslo_potvrdenie = "";
-$meno_err = $heslo_err = $heslo_potvrdenie_err = "";
+$meno = $priezvisko = $email = $heslo = $heslo_potvrdenie = "";
+$meno_err = $priezvisko_err = $email_err = $heslo_err = $heslo_potvrdenie_err = "";
 
 // Spracovanie údajov z formulára po odoslaní
 if($_SERVER["REQUEST_METHOD"] == "POST"){
@@ -21,20 +19,33 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     if(empty(trim($_POST["meno"]))){
         $meno_err = "Zadajte vaše meno.";
     } else{
-        // Kontrola, či meno už existuje
-        $sql = "SELECT id FROM pouzivatelia WHERE meno = ?";
+        $meno = trim($_POST["meno"]);
+    }
+    
+    if(empty(trim($_POST["priezvisko"]))){
+        $priezvisko_err = "Zadajte vaše priezvisko.";     
+    } else{
+        $priezvisko = trim($_POST["priezvisko"]);
+    }
+
+    if(empty(trim($_POST["email"]))){
+        $email_err = "Zadajte váš email.";     
+    } elseif(!filter_var(trim($_POST["email"]), FILTER_VALIDATE_EMAIL)){
+        $email_err = "Zadajte platný email.";
+    } else{
+        $sql = "SELECT id FROM pouzivatelia WHERE email = ?";
         
         if($stmt = mysqli_prepare($conn, $sql)){
-            mysqli_stmt_bind_param($stmt, "s", $param_meno);
-            $param_meno = trim($_POST["meno"]);
+            mysqli_stmt_bind_param($stmt, "s", $param_email);
+            $param_email = trim($_POST["email"]);
             
             if(mysqli_stmt_execute($stmt)){
                 mysqli_stmt_store_result($stmt);
                 
                 if(mysqli_stmt_num_rows($stmt) == 1){
-                    $meno_err = "Toto používateľské meno je už použité.";
+                    $email_err = "Tento email je už použitý.";
                 } else{
-                    $meno = trim($_POST["meno"]);
+                    $email = trim($_POST["email"]);
                 }
             } else{
                 echo "Ups! Niečo sa pokazilo. Skúste to neskôr.";
@@ -42,7 +53,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             mysqli_stmt_close($stmt);
         }
     }
-    
+
     // Validácia hesla
     if(empty(trim($_POST["heslo"]))){
         $heslo_err = "Zadajte heslo.";     
@@ -63,17 +74,19 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
     
     // Kontrola chýb pred vložením do databázy
-    if(empty($meno_err) && empty($heslo_err) && empty($heslo_potvrdenie_err)){
+    if(empty($meno_err) && empty($priezvisko_err) && empty($email_err) && empty($heslo_err) && empty($heslo_potvrdenie_err)){
         
         // Pripravenie insert príkazu - iba pre existujúce stĺpce v databáze
-        $sql = "INSERT INTO pouzivatelia (meno, heslo) VALUES (?, ?)";
+        $sql = "INSERT INTO pouzivatelia (meno, priezvisko, email, heslo) VALUES (?, ?, ?, ?)";
          
         if($stmt = mysqli_prepare($conn, $sql)){
             // Naviazanie premenných na parametre prepared statementu
-            mysqli_stmt_bind_param($stmt, "ss", $param_meno, $param_heslo);
+            mysqli_stmt_bind_param($stmt, "ssss", $param_meno, $param_priezvisko, $param_email, $param_heslo);
             
             // Nastavenie parametrov
             $param_meno = $meno;
+            $param_priezvisko = $priezvisko;
+            $param_email = $email;
             $param_heslo = password_hash($heslo, PASSWORD_DEFAULT); // Vytvorenie hash-u hesla
             
             // Pokus o vykonanie prepared statementu
@@ -125,11 +138,23 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                     <div class="card-body">
                         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                             <div class="mb-3">
-                                <label for="meno" class="form-label">Používateľské meno</label>
+                                <label for="meno" class="form-label">Meno</label>
                                 <input type="text" name="meno" class="form-control <?php echo (!empty($meno_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $meno; ?>" id="meno" required>
                                 <span class="invalid-feedback"><?php echo $meno_err; ?></span>
                             </div>
+
+                            <div class="mb-3">
+                                <label for="priezvisko" class="form-label">Priezvisko</label>
+                                <input type="text" name="priezvisko" class="form-control <?php echo (!empty($priezvisko_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $priezvisko; ?>" id="priezvisko" required>
+                                <span class="invalid-feedback"><?php echo $priezvisko_err; ?></span>
+                            </div>
                             
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="text" name="email" class="form-control <?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $email; ?>" id="email" required>
+                                <span class="invalid-feedback"><?php echo $email_err; ?></span>
+                            </div>
+
                             <div class="mb-3">
                                 <label for="heslo" class="form-label">Heslo</label>
                                 <input type="password" name="heslo" class="form-control <?php echo (!empty($heslo_err)) ? 'is-invalid' : ''; ?>" id="heslo" required>

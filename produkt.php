@@ -10,7 +10,6 @@ if(!isset($_GET["id"]) || empty($_GET["id"])) {
 
 // Získanie detailov produktu
 $id = $_GET["id"];
-// Upravený SQL dotaz pre použitie produkt_id namiesto id
 $sql = "SELECT * FROM produkty WHERE produkt_id = ?";
 
 if($stmt = mysqli_prepare($conn, $sql)) {
@@ -42,7 +41,6 @@ $suvisiace_produkty = array();
 
 // Skontrolujeme, či existuje kategória
 if(isset($produkt["kategoria"]) && !empty($produkt["kategoria"])) {
-    // Upravený SQL dotaz pre použitie produkt_id namiesto id
     $sql_suvisiace = "SELECT * FROM produkty WHERE kategoria = ? AND produkt_id != ? LIMIT 3";
     
     if($stmt = mysqli_prepare($conn, $sql_suvisiace)) {
@@ -59,8 +57,6 @@ if(isset($produkt["kategoria"]) && !empty($produkt["kategoria"])) {
         mysqli_stmt_close($stmt);
     }
 } else {
-    // Ak neexistuje kategória, vyberieme náhodné produkty
-    // Upravený SQL dotaz pre použitie produkt_id namiesto id
     $sql_suvisiace = "SELECT * FROM produkty WHERE produkt_id != ? ORDER BY RAND() LIMIT 3";
     
     if($stmt = mysqli_prepare($conn, $sql_suvisiace)) {
@@ -153,7 +149,6 @@ $dostupne_mnozstvo = isset($produkt["dostupne_mnozstvo"]) ? $produkt["dostupne_m
                             <?php if($dostupne_mnozstvo > 0): ?>
                                 <form action="kosik.php" method="get" class="mb-4">
                                     <input type="hidden" name="action" value="add">
-                                    <!-- Upravený odkaz pre použitie produkt_id namiesto id -->
                                     <input type="hidden" name="id" value="<?php echo $produkt["produkt_id"]; ?>">
                                     
                                     <div class="row g-3 align-items-center mb-4">
@@ -217,7 +212,6 @@ $dostupne_mnozstvo = isset($produkt["dostupne_mnozstvo"]) ? $produkt["dostupne_m
                                 </span>
 
                                 <div class="mt-2 w-100">
-                                    <!-- Upravený odkaz pre použitie produkt_id namiesto id -->
                                     <a href="produkt.php?id=<?php echo $sp['produkt_id']; ?>" class="btn custom-btn mt-2">
                                         Zobraziť detail
                                     </a>
