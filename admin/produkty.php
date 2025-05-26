@@ -1,15 +1,14 @@
 <?php
 session_start();
 
-// Kontrola, či je používateľ prihlásený a či má admin práva
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] !== 1) {
     header("location: ../authentification/prihlasenie.php");
     exit;
 }
 
-// Pripojenie konfigurácie
 require_once "../db/config.php";
-require_once "../functions/css.php";
+require_once "../functions/admin_css.php";
+require_once "../functions/admin_parts.php";
 
 // Inicializácia premenných pre formulár
 $nazov = $popis = $cena = $mnozstvo = $obrazok = "";
@@ -18,7 +17,7 @@ $edit_id = 0;
 
 // Mazanie produktu
 if(isset($_GET["delete"]) && !empty($_GET["delete"])) {
-    $sql = "DELETE FROM produkty WHERE id = ?";
+    $sql = "DELETE FROM produkty WHERE produkt_id = ?";
     
     if($stmt = mysqli_prepare($conn, $sql)) {
         mysqli_stmt_bind_param($stmt, "i", $_GET["delete"]);
@@ -36,21 +35,18 @@ if(isset($_GET["delete"]) && !empty($_GET["delete"])) {
 
 // Spracovanie formulára pre pridanie/úpravu
 if($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Validácia názvu
     if(empty(trim($_POST["nazov"]))) {
         $nazov_err = "Zadajte názov produktu.";
     } else {
         $nazov = trim($_POST["nazov"]);
     }
     
-    // Validácia popisu
     if(empty(trim($_POST["popis"]))) {
         $popis_err = "Zadajte popis produktu.";
     } else {
         $popis = trim($_POST["popis"]);
     }
     
-    // Validácia ceny
     if(empty(trim($_POST["cena"]))) {
         $cena_err = "Zadajte cenu produktu.";
     } elseif(!is_numeric($_POST["cena"]) || $_POST["cena"] <= 0) {
@@ -59,7 +55,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
         $cena = trim($_POST["cena"]);
     }
     
-    // Validácia množstva
     if(empty(trim($_POST["mnozstvo"]))) {
         $mnozstvo_err = "Zadajte množstvo na sklade.";
     } elseif(!is_numeric($_POST["mnozstvo"]) || $_POST["mnozstvo"] < 0) {
@@ -68,7 +63,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
         $mnozstvo = trim($_POST["mnozstvo"]);
     }
     
-    // Spracovanie obrázka
     $obrazok_nazov = "";
     if(isset($_FILES["obrazok"]) && $_FILES["obrazok"]["error"] == 0) {
         $povolene_typy = array("jpg", "jpeg", "png", "gif");
@@ -77,17 +71,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
         $obrazok_velkost = $_FILES["obrazok"]["size"];
         $obrazok_ext = strtolower(pathinfo($obrazok_nazov, PATHINFO_EXTENSION));
         
-        // Kontrola typu súboru
         if(!in_array($obrazok_ext, $povolene_typy)) {
             $obrazok_err = "Povolené sú len súbory JPG, JPEG, PNG a GIF.";
         }
         
-        // Kontrola veľkosti súboru (max 5MB)
         if($obrazok_velkost > 5242880) {
             $obrazok_err = "Súbor je príliš veľký. Maximálna veľkosť je 5MB.";
         }
         
-        // Nahratie súboru, ak nie sú chyby
         if(empty($obrazok_err)) {
             $new_filename = uniqid() . '.' . $obrazok_ext;
             $cielovy_subor = "../images/products/" . $new_filename;
@@ -102,15 +93,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     
     // Kontrola chýb pred odoslaním do databázy
     if(empty($nazov_err) && empty($popis_err) && empty($cena_err) && empty($mnozstvo_err) && empty($obrazok_err)) {
-        // Aktualizácia existujúceho produktu
         if(isset($_POST["edit_id"]) && !empty($_POST["edit_id"])) {
-            // Ak bol nahratý nový obrázok
             if(!empty($obrazok)) {
                 $sql = "UPDATE produkty SET nazov=?, popis=?, cena=?, dostupne_mnozstvo=?, obrazok=? WHERE id=?";
                 $stmt = mysqli_prepare($conn, $sql);
                 mysqli_stmt_bind_param($stmt, "ssdisi", $nazov, $popis, $cena, $mnozstvo, $obrazok, $_POST["edit_id"]);
             } else {
-                $sql = "UPDATE produkty SET nazov=?, popis=?, cena=?, dostupne_mnozstvo=? WHERE id=?";
+                $sql = "UPDATE produkty SET nazov=?, popis=?, cena=?, dostupne_mnozstvo=? WHERE produkt_id=?";
                 $stmt = mysqli_prepare($conn, $sql);
                 mysqli_stmt_bind_param($stmt, "ssdii", $nazov, $popis, $cena, $mnozstvo, $_POST["edit_id"]);
             }
@@ -135,7 +124,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
 
 // Načítanie údajov produktu na úpravu
 if(isset($_GET["edit"]) && !empty($_GET["edit"])) {
-    $sql = "SELECT * FROM produkty WHERE id = ?";
+    $sql = "SELECT * FROM produkty WHERE produkt_id = ?";
     
     if($stmt = mysqli_prepare($conn, $sql)) {
         mysqli_stmt_bind_param($stmt, "i", $_GET["edit"]);
@@ -145,7 +134,7 @@ if(isset($_GET["edit"]) && !empty($_GET["edit"])) {
             
             if(mysqli_num_rows($result) == 1) {
                 $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
-                $edit_id = $row["id"];
+                $edit_id = $row["produkt_id"];
                 $nazov = $row["nazov"];
                 $popis = $row["popis"];
                 $cena = $row["cena"];
@@ -176,60 +165,14 @@ if(isset($_GET["edit"]) && !empty($_GET["edit"])) {
     <?php admin_css(); ?>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Admin</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="../index.php" target="_blank">Zobraziť stránku</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="logout.php">Odhlásiť sa</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <?php admin_navbar(); ?>
 
     <main>
         <section class="about-section section-padding" id="section_produkty">
             <div class="container-fluid">
                 <div class="row">
-                    <!-- Bočný panel -->
-                    <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse admin-sidebar">
-                        <div class="position-sticky pt-3">
-                            <ul class="nav flex-column">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="index.php">
-                                        <i class="bi bi-speedometer2"></i>
-                                        Dashboard
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link active" href="produkty.php">
-                                        <i class="bi bi-box"></i>
-                                        Produkty
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="objednavky.php">
-                                        <i class="bi bi-cart"></i>
-                                        Objednávky
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="pouzivatelia.php">
-                                        <i class="bi bi-people"></i>
-                                        Používatelia
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </nav>
+
+                    <?php admin_sidebar(); ?>
 
                     <!-- Hlavný obsah -->
                     <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
@@ -275,13 +218,13 @@ if(isset($_GET["edit"]) && !empty($_GET["edit"])) {
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                    $sql = "SELECT * FROM produkty ORDER BY id DESC";
+                                                    $sql = "SELECT * FROM produkty ORDER BY produkt_id DESC";
                                                     $result = mysqli_query($conn, $sql);
                                                     
                                                     if(mysqli_num_rows($result) > 0) {
                                                         while($row = mysqli_fetch_assoc($result)) {
                                                             echo "<tr>";
-                                                            echo "<td>".$row['id']."</td>";
+                                                            echo "<td>".$row['produkt_id']."</td>";
                                                             echo "<td>";
                                                             if(!empty($row['obrazok'])) {
                                                                 echo '<img src="../images/products/'.$row['obrazok'].'" width="50" alt="'.$row['nazov'].'">';
@@ -293,8 +236,8 @@ if(isset($_GET["edit"]) && !empty($_GET["edit"])) {
                                                             echo "<td>".number_format($row['cena'], 2, ',', ' ')." €</td>";
                                                             echo "<td>".$row['dostupne_mnozstvo']."</td>";
                                                             echo "<td>
-                                                                    <a href='produkty.php?edit=".$row['id']."' class='btn btn-sm btn-primary'><i class='bi bi-pencil'></i></a>
-                                                                    <a href='produkty.php?delete=".$row['id']."' class='btn btn-sm btn-danger' onclick='return confirm(\"Naozaj chcete odstrániť tento produkt?\")'><i class='bi bi-trash'></i></a>
+                                                                    <a href='produkty.php?edit=".$row['produkt_id']."' class='btn btn-sm btn-primary'><i class='bi bi-pencil'></i></a>
+                                                                    <a href='produkty.php?delete=".$row['produkt_id']."' class='btn btn-sm btn-danger' onclick='return confirm(\"Naozaj chcete odstrániť tento produkt?\")'><i class='bi bi-trash'></i></a>
                                                                 </td>";
                                                             echo "</tr>";
                                                         }
@@ -316,11 +259,11 @@ if(isset($_GET["edit"]) && !empty($_GET["edit"])) {
     </main>
 
     <!-- Modal pre pridanie/úpravu produktu -->
-    <div class="modal fade" id="produktModal" tabindex="-1" aria-labelledby="produktModalLabel" aria-hidden="true">
+    <div class="modal fade" id="produktModal" tabindex="-1" aria-labelledby="produktModalLabel" aria-hidden="true" style="padding-top: 85px;">
         <div class="modal-dialog modal-lg">
             <div class="modal-content bg-dark text-white">
                 <div class="modal-header border-secondary">
-                    <h5 class="modal-title" id="produktModalLabel"><?php echo $edit_id ? 'Upraviť produkt' : 'Pridať nový produkt'; ?></h5>
+                    <h5 class="modal-title text-white" id="produktModalLabel"><?php echo $edit_id ? 'Upraviť produkt' : 'Pridať nový produkt'; ?></h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">

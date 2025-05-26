@@ -1,22 +1,20 @@
 <?php
-// Inicializácia session
 session_start();
 
-// Kontrola či je používateľ prihlásený
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: autentification/prihlasenie.php");
     exit;
 }
 
-// Kontrola či je používateľ admin
 if(!isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] !== 1){
     header("location: index.php");
     exit;
 }
 
-// Pripojenie konfiguračného súboru
 require_once "../db/config.php";
-require_once "../functions/css.php";
+require_once "../functions/admin_css.php";
+require_once "../functions/admin_parts.php";
+
 
 // Spracovanie zmeny stavu objednávky
 if(isset($_POST['update_stav']) && isset($_POST['objednavka_id']) && isset($_POST['novy_stav'])) {
@@ -140,60 +138,15 @@ $celkovy_pocet = array_sum($stavy_pocty);
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Admin Panel</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php" target="_blank">Zobraziť stránku</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="admin/logout.php">Odhlásiť sa</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    
+    <?php admin_navbar(); ?>
 
     <main>
         <section class="about-section section-padding" id="section_objednavky">
             <div class="container-fluid">
                 <div class="row">
-                    <!-- Bočný panel -->
-                    <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse admin-sidebar">
-                        <div class="position-sticky pt-3">
-                            <ul class="nav flex-column">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="admin/index.php">
-                                        <i class="bi bi-speedometer2"></i>
-                                        Dashboard
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="admin/produkty.php">
-                                        <i class="bi bi-box"></i>
-                                        Produkty
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link active" href="objednavky.php">
-                                        <i class="bi bi-cart"></i>
-                                        Objednávky
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="admin/pouzivatelia.php">
-                                        <i class="bi bi-people"></i>
-                                        Používatelia
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </nav>
+                    
+                    <?php admin_sidebar(); ?>
 
                     <!-- Hlavný obsah -->
                     <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">

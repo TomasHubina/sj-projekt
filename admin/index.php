@@ -1,23 +1,19 @@
 <?php
-// Inicializácia session
 session_start();
 
-// Kontrola či je používateľ prihlásený
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: ../autentification/prihlasenie.php");
     exit;
 }
 
-// Kontrola či je používateľ admin
 if(!isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] !== 1){
     header("location: ../index.php");
     exit;
 }
 
-// Pripojenie konfiguračného súboru
 require_once "../db/config.php";
-
-require_once "../functions/css.php";
+require_once "../functions/admin_css.php";
+require_once "../functions/admin_parts.php";
 
 // Získanie počtu objednávok
 $sql = "SELECT COUNT(*) as pocet FROM objednavky";
@@ -52,61 +48,16 @@ $pouzivatelia = mysqli_fetch_assoc($result)['pocet'];
     <?php admin_css(); ?>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Admin</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="../index.php" target="_blank">Zobraziť stránku</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="logout.php">Odhlásiť sa</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    
+    <?php admin_navbar(); ?>
 
     <main>
         <section class="about-section section-padding" id="section_dashboard">
 
             <div class="container-fluid">
                 <div class="row">
-                    <!-- Bočný panel -->
-                    <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse admin-sidebar">
-                        <div class="position-sticky pt-3">
-                            <ul class="nav flex-column">
-                                <li class="nav-item">
-                                    <a class="nav-link active" href="index.php">
-                                        <i class="bi bi-speedometer2"></i>
-                                        Dashboard
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="produkty.php">
-                                        <i class="bi bi-box"></i>
-                                        Produkty
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="objednavky.php">
-                                        <i class="bi bi-cart"></i>
-                                        Objednávky
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="pouzivatelia.php">
-                                        <i class="bi bi-people"></i>
-                                        Používatelia
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </nav>
+                    
+                    <?php admin_sidebar(); ?>
 
                     <!-- Hlavný obsah -->
                     <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
@@ -192,7 +143,7 @@ $pouzivatelia = mysqli_fetch_assoc($result)['pocet'];
                                                         <th>Meno</th>
                                                         <th>Dátum</th>
                                                         <th>Suma</th>
-                                                        <!--<th>Stav</th> -->
+                                                        <th>Stav</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -210,13 +161,13 @@ $pouzivatelia = mysqli_fetch_assoc($result)['pocet'];
                                                             echo "<td>".date('d.m.Y', strtotime($row['datum_vytvorenia']))."</td>";
                                                             echo "<td>".number_format($row['celkova_suma'], 2, ',', ' ')." €</td>";
                                                             
-                                                            /*$stav_trieda = "secondary";
+                                                            $stav_trieda = "secondary";
                                                             if($row['stav'] == 'vybavená') $stav_trieda = "success";
                                                             else if($row['stav'] == 'zrušená') $stav_trieda = "danger";
                                                             else if($row['stav'] == 'spracováva sa') $stav_trieda = "warning";
                                                             
                                                             echo "<td><span class='badge bg-".$stav_trieda."'>".$row['stav']."</span></td>";
-                                                            echo "</tr>";*/
+                                                            echo "</tr>";
                                                         }
                                                     } else {
                                                         echo "<tr><td colspan='5' class='text-center'>Žiadne objednávky</td></tr>";
@@ -226,7 +177,7 @@ $pouzivatelia = mysqli_fetch_assoc($result)['pocet'];
                                             </table>
                                         </div>
                                         <div class="text-end mt-3">
-                                            <a href="../objednavky.php" class="btn custom-btn custom-border-btn">Všetky objednávky</a>
+                                            <a href="objednavky.php" class="btn custom-btn custom-border-btn">Všetky objednávky</a>
                                         </div>
                                     </div>
                                 </div>
