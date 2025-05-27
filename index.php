@@ -147,184 +147,147 @@ if(!require($file_path)) {
                 </section>
 
 
-                <section class="menu-section section-padding" id="section_3">
-                    <div class="container">
-                        <div class="row">
+                
+                
+<section class="menu-section section-padding" id="section_3">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <em class="text-white">Ponuka</em>
+                <h2 class="text-white mb-3">Naše kávy</h2>
+            </div>
+            
+            <?php
+            // Pripojenie k databáze
+            require_once "db/config.php";
+            
+            // Získanie produktov z databázy
+            $sql = "SELECT * FROM produkty WHERE dostupne_mnozstvo > 0 ORDER BY produkt_id DESC LIMIT 10";
+            $result = mysqli_query($conn, $sql);
+            
+            // Kontrola, či existujú produkty
+            if(mysqli_num_rows($result) > 0) {
+                // Rozdelenie do dvoch stĺpcov
+                $products = array();
+                while($row = mysqli_fetch_assoc($result)) {
+                    $products[] = $row;
+                }
+                
+                $half = ceil(count($products) / 2);
+                $firstHalf = array_slice($products, 0, $half);
+                $secondHalf = array_slice($products, $half);
+            ?>
+            
+            
 
-                            <div class="col-lg-6 col-12 mb-4 mb-lg-0">
-                                <div class="menu-block-wrap">
-                                    <div class="text-center mb-4 pb-lg-2">
-                                        <em class="text-white">Naše kávy</em>
-                                        <h4 class="text-white">Jednodruhové kávy</h4>
-                                    </div>
 
-                                    <div class="menu-block">
-                                        <div class="d-flex">
-                                            <h6>Etiópia Yirgacheffe</h6>
-                                        
-                                            <span class="underline"></span>
-
-                                            <strong class="ms-auto">12,50 €</strong>
-                                        </div>
-
-                                        <div class="border-top mt-2 pt-2">
-                                            <small>Ovocné tóny s jemnou kyselinkou a nádychom citrusov</small>
-                                        </div>
-                                    </div>
-
-                                    <div class="menu-block my-4">
-                                        <div class="d-flex">
-                                            <h6>
-                                                Brazília Santos
-                                            </h6>
-                                        
-                                            <span class="underline"></span>
-
-                                            <strong class="text-white ms-auto"><del>16,50 €</del></strong>
-
-                                            <strong class="ms-2">12,00 €</strong>
-                                        </div>
-
-                                        <div class="border-top mt-2 pt-2">
-                                            <small>Oriešková chuť s karamelovou sladkosťou</small>
-                                        </div>
-                                    </div>
-
-                                    <div class="menu-block">
-                                        <div class="d-flex">
-                                            <h6>Guatemala Antigua
-                                                <span class="badge ms-3">Odporúčame</span>
-                                            </h6>
-                                        
-                                            <span class="underline"></span>
-
-                                            <strong class="ms-auto">15,00 €</strong>
-                                        </div>
-
-                                        <div class="border-top mt-2 pt-2">
-                                            <small>Jemná kyselinka s tónmi mandlí a čokolády</small>
-                                        </div>
-                                    </div>
-
-                                    <div class="menu-block my-4">
-                                        <div class="d-flex">
-                                            <h6>Kolumbia Supremo</h6>
-                                        
-                                            <span class="underline"></span>
-
-                                            <strong class="ms-auto">14,50 €</strong>
-                                        </div>
-
-                                        <div class="border-top mt-2 pt-2">
-                                            <small>Vyvážená chuť s tónmi čokolády a orechov</small>
-                                        </div>
-                                    </div>
-
-                                    <div class="menu-block">
-                                        <div class="d-flex">
-                                            <h6>Keňa AA</h6>
-                                        
-                                            <span class="underline"></span>
-
-                                            <strong class="ms-auto">18,00 €</strong>
-                                        </div>
-
-                                        <div class="border-top mt-2 pt-2">
-                                            <small>Výrazná ovocná chuť s bohatou kyselinkou</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-lg-6 col-12">
-                                <div class="menu-block-wrap">
-                                    <div class="text-center mb-4 pb-lg-2">
-                                        <em class="text-white">Špeciality</em>
-                                        <h4 class="text-white">Zmesi a espresso</h4>
-                                    </div>
-
-                                    <div class="menu-block">
-                                        <div class="d-flex">
-                                            <h6>Ranná zmes</h6>
-                                        
-                                            <span class="underline"></span>
-
-                                            <strong class="text-white ms-auto"><del>12,50 €</del></strong>
-
-                                            <strong class="ms-2">9,50 €</strong>
-                                        </div>
-
-                                        <div class="border-top mt-2 pt-2">
-                                            <small>Intenzívna zmes s výraznou chuťou a vyššou kofeínovou dávkou</small>
-                                        </div>
-                                    </div>
-
-                                    <div class="menu-block my-4">
-                                        <div class="d-flex">
-                                            <h6>
-                                                Zlatá zmes
-                                                <span class="badge ms-3">Bestseller</span>
-                                            </h6>
-                                        
-                                            <span class="underline"></span>
-
-                                            <strong class="ms-auto">11,90 €</strong>
-                                        </div>
-
-                                        <div class="border-top mt-2 pt-2">
-                                            <small>Naša vlajková loď - dokonale vyvážená zmes</small>
-                                        </div>
-                                    </div>
-
-                                    <div class="menu-block">
-                                        <div class="d-flex">
-                                            <h6>Dekaf šetrný</h6>
-                                        
-                                            <span class="underline"></span>
-
-                                            <strong class="ms-auto">13,50 €</strong>
-                                        </div>
-
-                                        <div class="border-top mt-2 pt-2">
-                                            <small>Káva bez kofeínu spracovaná švajčiarskou vodnou metódou</small>
-                                        </div>
-                                    </div>
-
-                                    <div class="menu-block my-4">
-                                        <div class="d-flex">
-                                            <h6>Espresso zmes</h6>
-                                        
-                                            <span class="underline"></span>
-
-                                            <strong class="ms-auto">13,50 €</strong>
-                                        </div>
-
-                                        <div class="border-top mt-2 pt-2">
-                                            <small>Temno pražená zmes ideálna pre espresso a mliečne nápoje</small>
-                                        </div>
-                                    </div>
-
-                                    <div class="menu-block">
-                                        <div class="d-flex">
-                                            <h6>Ochutená káva - Čokoláda</h6>
-                                        
-                                            <span class="underline"></span>
-
-                                            <strong class="ms-auto">10,25 €</strong>
-                                        </div>
-
-                                        <div class="border-top mt-2 pt-2">
-                                            <small>Stredne pražená káva s prirodzenou čokoládovou arómou</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
+<!-- Prvý stĺpec produktov -->
+<div class="col-lg-6 col-12 mb-4 mb-lg-0">
+    <?php foreach($firstHalf as $product): ?>
+    <div class="menu-block bg-dark mb-4 rounded p-3" style="height: 250px; overflow: hidden;">
+        <div class="d-flex h-100">
+            <div class="product-image me-4 align-self-center" style="min-width: 100px;">
+                <?php if(!empty($product['obrazok'])): ?>
+                    <img src="images/products/<?php echo htmlspecialchars($product['obrazok']); ?>" 
+                         class="img-fluid rounded" style="width: 180px; height: 180px; object-fit: cover;" 
+                         alt="<?php echo htmlspecialchars($product['nazov']); ?>">
+                <?php else: ?>
+                    <div class="bg-secondary rounded d-flex align-items-center justify-content-center" 
+                         style="width: 180px; height: 180px;">
+                        <i class="bi bi-cup-hot text-white" style="font-size: 3rem;"></i>
                     </div>
-                </section>
+                <?php endif; ?>
+            </div>
+            
+            <div class="product-info flex-grow-1 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="text-white mb-0">
+                        <?php echo htmlspecialchars($product['nazov']); ?>
+                        <?php if($product['dostupne_mnozstvo'] <= 5): ?>
+                        <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">Posledné kusy</span>
+                        <?php endif; ?>
+                    </h5>
+                    <strong class="text-white"><?php echo number_format($product['cena'], 2, ',', ' '); ?> €</strong>
+                </div>
+                
+                <p class="text-light small mb-2" style="max-height: 80px; overflow-y: auto;">
+                    <?php 
+                    $popis = htmlspecialchars($product['popis']);
+                    echo (strlen($popis) > 200) ? substr($popis, 0, 200) . '...' : $popis;
+                    ?>
+                </p>
+                
+                <div class="mt-auto">
+                    <a href="produkt.php?id=<?php echo $product['produkt_id']; ?>" class="btn btn-sm custom-btn">Detail</a>
+                    <a href="kosik.php?action=add&id=<?php echo $product['produkt_id']; ?>&mnozstvo=1" class="btn btn-sm custom-btn custom-border-btn ms-2">Do košíka</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; ?>
+</div>
 
-                <!-- Nová sekcia pre objednávku kávy -->
+<!-- Druhý stĺpec produktov - rovnaké zmeny -->
+<div class="col-lg-6 col-12">
+    <?php foreach($secondHalf as $product): ?>
+    <div class="menu-block bg-dark mb-4 rounded p-3" style="height: 250px; overflow: hidden;">
+        <div class="d-flex h-100">
+            <div class="product-image me-4 align-self-center" style="min-width: 100px;">
+                <?php if(!empty($product['obrazok'])): ?>
+                    <img src="images/products/<?php echo htmlspecialchars($product['obrazok']); ?>" 
+                         class="img-fluid rounded" style="width: 180px; height: 180px; object-fit: cover;" 
+                         alt="<?php echo htmlspecialchars($product['nazov']); ?>">
+                <?php else: ?>
+                    <div class="bg-secondary rounded d-flex align-items-center justify-content-center" 
+                         style="width: 180px; height: 180px;">
+                        <i class="bi bi-cup-hot text-white" style="font-size: 3rem;"></i>
+                    </div>
+                <?php endif; ?>
+            </div>
+            
+            <div class="product-info flex-grow-1 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="text-white mb-0">
+                        <?php echo htmlspecialchars($product['nazov']); ?>
+                        <?php if($product['dostupne_mnozstvo'] <= 5): ?>
+                        <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">Posledné kusy</span>
+                        <?php endif; ?>
+                    </h5>
+                    <strong class="text-white"><?php echo number_format($product['cena'], 2, ',', ' '); ?> €</strong>
+                </div>
+                
+                <p class="text-light small mb-2" style="max-height: 80px; overflow-y: auto;">
+                    <?php 
+                    $popis = htmlspecialchars($product['popis']);
+                    echo (strlen($popis) > 200) ? substr($popis, 0, 200) . '...' : $popis;
+                    ?>
+                </p>
+                
+                <div class="mt-auto">
+                    <a href="produkt.php?id=<?php echo $product['produkt_id']; ?>" class="btn btn-sm custom-btn">Detail</a>
+                    <a href="kosik.php?action=add&id=<?php echo $product['produkt_id']; ?>&mnozstvo=1" class="btn btn-sm custom-btn custom-border-btn ms-2">Do košíka</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; ?>
+</div>
+            
+            <?php 
+            } else {
+                // Ak nie sú žiadne produkty
+                echo '<div class="col-12 text-center">';
+                echo '<div class="alert alert-dark text-white">';
+                echo '<p>Momentálne nemáme žiadne produkty na sklade.</p>';
+                echo '</div>';
+                echo '</div>';
+            }
+            ?>
+        </div>
+    </div>
+</section>
+
+                <!-- Nová sekcia pre objednávku kávy 
                 <section class="about-section section-padding" id="section_order">
                     <div class="section-overlay"></div>
                     <div class="container">
@@ -341,7 +304,7 @@ if(!require($file_path)) {
 
         </div>
     </div>
-</section>
+</section>-->
 
 
                 <section class="reviews-section section-padding section-bg" id="section_4">
@@ -454,7 +417,6 @@ if(!require($file_path)) {
                 </section>
 
 
-                <!-- -->
             <?php
                 $file_path = "parts/footer.php";
             if(!require($file_path)) {
