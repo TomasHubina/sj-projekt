@@ -158,16 +158,12 @@ if(!require($file_path)) {
             </div>
             
             <?php
-            // Pripojenie k databáze
             require_once "db/config.php";
             
-            // Získanie produktov z databázy
             $sql = "SELECT * FROM produkty WHERE dostupne_mnozstvo > 0 ORDER BY produkt_id DESC LIMIT 10";
             $result = mysqli_query($conn, $sql);
             
-            // Kontrola, či existujú produkty
             if(mysqli_num_rows($result) > 0) {
-                // Rozdelenie do dvoch stĺpcov
                 $products = array();
                 while($row = mysqli_fetch_assoc($result)) {
                     $products[] = $row;
@@ -181,97 +177,95 @@ if(!require($file_path)) {
             
 
 
-<!-- Prvý stĺpec produktov -->
-<div class="col-lg-6 col-12 mb-4 mb-lg-0">
-    <?php foreach($firstHalf as $product): ?>
-    <div class="menu-block bg-dark mb-4 rounded p-3" style="height: 250px; overflow: hidden;">
-        <div class="d-flex h-100">
-            <div class="product-image me-4 align-self-center" style="min-width: 100px;">
-                <?php if(!empty($product['obrazok'])): ?>
-                    <img src="images/products/<?php echo htmlspecialchars($product['obrazok']); ?>" 
-                         class="img-fluid rounded" style="width: 180px; height: 180px; object-fit: cover;" 
-                         alt="<?php echo htmlspecialchars($product['nazov']); ?>">
-                <?php else: ?>
-                    <div class="bg-secondary rounded d-flex align-items-center justify-content-center" 
-                         style="width: 180px; height: 180px;">
-                        <i class="bi bi-cup-hot text-white" style="font-size: 3rem;"></i>
-                    </div>
-                <?php endif; ?>
-            </div>
+            <div class="col-lg-6 col-12 mb-4 mb-lg-0">
+                <?php foreach($firstHalf as $product): ?>
+                <div class="menu-block bg-dark mb-4 rounded p-3" style="height: 250px; overflow: hidden;">
+                    <div class="d-flex h-100">
+                        <div class="product-image me-4 align-self-center" style="min-width: 100px;">
+                            <?php if(!empty($product['obrazok'])): ?>
+                                <img src="images/products/<?php echo htmlspecialchars($product['obrazok']); ?>" 
+                                    class="img-fluid rounded" style="width: 180px; height: 180px; object-fit: cover;" 
+                                    alt="<?php echo htmlspecialchars($product['nazov']); ?>">
+                            <?php else: ?>
+                                <div class="bg-secondary rounded d-flex align-items-center justify-content-center" 
+                                    style="width: 180px; height: 180px;">
+                                    <i class="bi bi-cup-hot text-white" style="font-size: 3rem;"></i>
+                                </div>
+                            <?php endif; ?>
+                        </div>
             
-            <div class="product-info flex-grow-1 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="text-white mb-0">
-                        <?php echo htmlspecialchars($product['nazov']); ?>
-                        <?php if($product['dostupne_mnozstvo'] <= 5): ?>
-                        <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">Posledné kusy</span>
-                        <?php endif; ?>
-                    </h5>
-                    <strong class="text-white"><?php echo number_format($product['cena'], 2, ',', ' '); ?> €</strong>
-                </div>
+                        <div class="product-info flex-grow-1 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="text-white mb-0">
+                                    <?php echo htmlspecialchars($product['nazov']); ?>
+                                    <?php if($product['dostupne_mnozstvo'] <= 5): ?>
+                                    <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">Posledné kusy</span>
+                                    <?php endif; ?>
+                                </h5>
+                                <strong class="text-white"><?php echo number_format($product['cena'], 2, ',', ' '); ?> €</strong>
+                            </div>
                 
-                <p class="text-light small mb-2" style="max-height: 80px; overflow-y: auto;">
-                    <?php 
-                    $popis = htmlspecialchars($product['popis']);
-                    echo (strlen($popis) > 200) ? substr($popis, 0, 200) . '...' : $popis;
-                    ?>
-                </p>
+                            <p class="text-light small mb-2" style="max-height: 80px; overflow-y: auto;">
+                                <?php 
+                                $popis = htmlspecialchars($product['popis']);
+                                echo (strlen($popis) > 200) ? substr($popis, 0, 200) . '...' : $popis;
+                                ?>
+                            </p>
                 
-                <div class="mt-auto">
-                    <a href="produkt.php?id=<?php echo $product['produkt_id']; ?>" class="btn btn-sm custom-btn">Detail</a>
-                    <a href="kosik.php?action=add&id=<?php echo $product['produkt_id']; ?>&mnozstvo=1" class="btn btn-sm custom-btn custom-border-btn ms-2">Do košíka</a>
+                            <div class="mt-auto">
+                                <a href="produkt.php?id=<?php echo $product['produkt_id']; ?>" class="btn btn-sm custom-btn">Detail</a>
+                                <a href="kosik.php?action=add&id=<?php echo $product['produkt_id']; ?>&mnozstvo=1" class="btn btn-sm custom-btn custom-border-btn ms-2">Do košíka</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                <?php endforeach; ?>
             </div>
-        </div>
-    </div>
-    <?php endforeach; ?>
-</div>
 
-<!-- Druhý stĺpec produktov - rovnaké zmeny -->
-<div class="col-lg-6 col-12">
-    <?php foreach($secondHalf as $product): ?>
-    <div class="menu-block bg-dark mb-4 rounded p-3" style="height: 250px; overflow: hidden;">
-        <div class="d-flex h-100">
-            <div class="product-image me-4 align-self-center" style="min-width: 100px;">
-                <?php if(!empty($product['obrazok'])): ?>
-                    <img src="images/products/<?php echo htmlspecialchars($product['obrazok']); ?>" 
-                         class="img-fluid rounded" style="width: 180px; height: 180px; object-fit: cover;" 
-                         alt="<?php echo htmlspecialchars($product['nazov']); ?>">
-                <?php else: ?>
-                    <div class="bg-secondary rounded d-flex align-items-center justify-content-center" 
-                         style="width: 180px; height: 180px;">
-                        <i class="bi bi-cup-hot text-white" style="font-size: 3rem;"></i>
-                    </div>
-                <?php endif; ?>
-            </div>
+            <div class="col-lg-6 col-12">
+                <?php foreach($secondHalf as $product): ?>
+                <div class="menu-block bg-dark mb-4 rounded p-3" style="height: 250px; overflow: hidden;">
+                    <div class="d-flex h-100">
+                        <div class="product-image me-4 align-self-center" style="min-width: 100px;">
+                            <?php if(!empty($product['obrazok'])): ?>
+                                <img src="images/products/<?php echo htmlspecialchars($product['obrazok']); ?>" 
+                                    class="img-fluid rounded" style="width: 180px; height: 180px; object-fit: cover;" 
+                                    alt="<?php echo htmlspecialchars($product['nazov']); ?>">
+                            <?php else: ?>
+                                <div class="bg-secondary rounded d-flex align-items-center justify-content-center" 
+                                    style="width: 180px; height: 180px;">
+                                    <i class="bi bi-cup-hot text-white" style="font-size: 3rem;"></i>
+                                </div>
+                            <?php endif; ?>
+                        </div>
             
-            <div class="product-info flex-grow-1 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="text-white mb-0">
-                        <?php echo htmlspecialchars($product['nazov']); ?>
-                        <?php if($product['dostupne_mnozstvo'] <= 5): ?>
-                        <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">Posledné kusy</span>
-                        <?php endif; ?>
-                    </h5>
-                    <strong class="text-white"><?php echo number_format($product['cena'], 2, ',', ' '); ?> €</strong>
-                </div>
+                        <div class="product-info flex-grow-1 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="text-white mb-0">
+                                    <?php echo htmlspecialchars($product['nazov']); ?>
+                                    <?php if($product['dostupne_mnozstvo'] <= 5): ?>
+                                    <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">Posledné kusy</span>
+                                    <?php endif; ?>
+                                </h5>
+                                <strong class="text-white"><?php echo number_format($product['cena'], 2, ',', ' '); ?> €</strong>
+                            </div>
                 
-                <p class="text-light small mb-2" style="max-height: 80px; overflow-y: auto;">
-                    <?php 
-                    $popis = htmlspecialchars($product['popis']);
-                    echo (strlen($popis) > 200) ? substr($popis, 0, 200) . '...' : $popis;
-                    ?>
-                </p>
+                            <p class="text-light small mb-2" style="max-height: 80px; overflow-y: auto;">
+                                <?php 
+                                $popis = htmlspecialchars($product['popis']);
+                                echo (strlen($popis) > 200) ? substr($popis, 0, 200) . '...' : $popis;
+                                ?>
+                            </p>
                 
-                <div class="mt-auto">
-                    <a href="produkt.php?id=<?php echo $product['produkt_id']; ?>" class="btn btn-sm custom-btn">Detail</a>
-                    <a href="kosik.php?action=add&id=<?php echo $product['produkt_id']; ?>&mnozstvo=1" class="btn btn-sm custom-btn custom-border-btn ms-2">Do košíka</a>
+                            <div class="mt-auto">
+                                <a href="produkt.php?id=<?php echo $product['produkt_id']; ?>" class="btn btn-sm custom-btn">Detail</a>
+                                <a href="kosik.php?action=add&id=<?php echo $product['produkt_id']; ?>&mnozstvo=1" class="btn btn-sm custom-btn custom-border-btn ms-2">Do košíka</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                <?php endforeach; ?>
             </div>
-        </div>
-    </div>
-    <?php endforeach; ?>
-</div>
             
             <?php 
             } else {

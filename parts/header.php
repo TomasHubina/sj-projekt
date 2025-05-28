@@ -9,7 +9,7 @@
                 <div class="text-center">
                     <a href="#section_2" class="btn custom-btn smoothscroll me-3">Spoznajte nás</a>
 
-                    <a href="#section_order" class="btn custom-btn custom-border-btn smoothscroll">Objednať kávu</a>
+                    <a href="produkty.php" class="btn custom-btn custom-border-btn smoothscroll">Objednať kávu</a>
                 </div>
             </div>
 

@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg">
+<nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
         <a class="navbar-brand" href="index.php">
             <span>Gold Coffee</span>
@@ -27,11 +27,11 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="#section_order">Objednať kávu</a>
+                    <a class="nav-link" href="#section_4">Referencie</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="#section_contact">Kontakt</a>
+                    <a class="nav-link" href="#section_5">Kontakt</a>
                 </li>
             </ul>
 
@@ -51,7 +51,6 @@
                             <?php if (isset($_SESSION["je_admin"]) && $_SESSION["je_admin"] === 1): ?>
                                 <li><a class="dropdown-item" href="admin/index.php">Admin panel</a></li>
                             <?php endif; ?>
-                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="../autentification/odhlasenie.php">Odhlásiť sa</a></li>
                         </ul>
                     </div>

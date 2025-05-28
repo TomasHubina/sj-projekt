@@ -2,13 +2,11 @@
 session_start();
 require_once "db/config.php";
 
-// Overenie, či bol zadaný ID produktu
 if(!isset($_GET["id"]) || empty($_GET["id"])) {
     header("location: produkty.php");
     exit;
 }
 
-// Získanie detailov produktu
 $id = $_GET["id"];
 $sql = "SELECT * FROM produkty WHERE produkt_id = ?";
 
@@ -21,7 +19,6 @@ if($stmt = mysqli_prepare($conn, $sql)) {
         if(mysqli_num_rows($result) == 1) {
             $produkt = mysqli_fetch_assoc($result);
         } else {
-            // Produkt nebol nájdený
             header("location: produkty.php");
             exit;
         }
@@ -36,10 +33,8 @@ if($stmt = mysqli_prepare($conn, $sql)) {
     exit;
 }
 
-// Získanie súvisiacich produktov
 $suvisiace_produkty = array();
 
-// Skontrolujeme, či existuje kategória
 if(isset($produkt["kategoria"]) && !empty($produkt["kategoria"])) {
     $sql_suvisiace = "SELECT * FROM produkty WHERE kategoria = ? AND produkt_id != ? LIMIT 3";
     
@@ -74,10 +69,8 @@ if(isset($produkt["kategoria"]) && !empty($produkt["kategoria"])) {
     }
 }
 
-// Zatvorenie spojenia
 mysqli_close($conn);
 
-// Zjednotenie názvov stĺpcov
 $dostupne_mnozstvo = isset($produkt["dostupne_mnozstvo"]) ? $produkt["dostupne_mnozstvo"] : 
                     (isset($produkt["mnozstvo_na_sklade"]) ? $produkt["mnozstvo_na_sklade"] : 0);
 ?>

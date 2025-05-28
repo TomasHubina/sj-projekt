@@ -1,5 +1,4 @@
 <?php
-// Inicializácia session
 session_start();
 
 // Zrušenie všetkých session premenných
@@ -14,10 +13,8 @@ if (ini_get("session.use_cookies")) {
     );
 }
 
-// Ukončenie session
 session_destroy();
 
-// Presmerovanie na prihlasovaciu stránku
 header("location: ../index.php");
 exit;
 ?>

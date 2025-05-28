@@ -2,136 +2,125 @@
 session_start();
 require_once "db/config.php";
 
-// Kontrola, či je košík prázdny
 if(!isset($_SESSION['kosik']) || count($_SESSION['kosik']) == 0) {
     header("Location: kosik.php");
     exit;
 }
 
-// Kontrola, či je používateľ prihlásený
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     $_SESSION['redirect_after_login'] = 'objednavka.php';
     header("Location: prihlasenie.php");
     exit;
 }
 
-// Inicializácia premenných
-$adresa = $mesto = $psc = $telefon = $poznamka = "";
-$adresa_err = $mesto_err = $psc_err = $telefon_err = "";
+$ulica = $mesto = $psc = $telefon = $poznamka = $cislo = "";
+$ulica_err = $mesto_err = $psc_err = $telefon_err = $cislo_err = "";
 $platba = $dorucenie = "";
 $platba_err = $dorucenie_err = "";
 
-// Načítanie údajov používateľa z databázy
 $sql = "SELECT * FROM pouzivatelia WHERE id = ?";
 if($stmt = mysqli_prepare($conn, $sql)) {
     mysqli_stmt_bind_param($stmt, "i", $_SESSION["id"]);
     if(mysqli_stmt_execute($stmt)) {
         $result = mysqli_stmt_get_result($stmt);
         if($user_data = mysqli_fetch_assoc($result)) {
-            // Fix for missing user data fields
-            $adresa = isset($user_data['adresa']) ? $user_data['adresa'] : "";
+            $meno = $user_data['meno'] ?? "";
+            $priezvisko = $user_data['priezvisko'] ?? "";
+            $email = $user_data['email'] ?? "";
+            $ulica = isset($user_data['ulica']) ? $user_data['ulica'] : "";
+            $cislo = isset($user_data['cislo']) ? $user_data['cislo'] : "";
             $mesto = isset($user_data['mesto']) ? $user_data['mesto'] : "";
             $psc = isset($user_data['psc']) ? $user_data['psc'] : "";
             $telefon = isset($user_data['telefon']) ? $user_data['telefon'] : "";
-            $meno = $user_data['meno'] ?? ""; // Make sure these fields exist
-            $priezvisko = $user_data['priezvisko'] ?? "";
         }
     }
     mysqli_stmt_close($stmt);
 }
 
-// Výpočet celkovej sumy
 $celkova_suma = 0;
 foreach($_SESSION['kosik'] as $item) {
     $celkova_suma += $item['cena'] * $item['mnozstvo'];
 }
 
-// Spracovanie objednávky
 if($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Validácia adresy
-    if(empty(trim($_POST["adresa"]))) {
-        $adresa_err = "Zadajte adresu doručenia.";
+    if(empty(trim($_POST["ulica"]))) {
+        $ulica_err = "Zadajte adresu doručenia.";
     } else {
-        $adresa = trim($_POST["adresa"]);
+        $ulica = trim($_POST["ulica"]);
     }
     
-    // Validácia mesta
+    if(empty(trim($_POST["cislo"]))) {
+        $cislo_err = "Zadajte číslo domu.";
+    } else {
+        $cislo = trim($_POST["cislo"]);
+    }
+
     if(empty(trim($_POST["mesto"]))) {
         $mesto_err = "Zadajte mesto.";
     } else {
         $mesto = trim($_POST["mesto"]);
     }
     
-    // Validácia PSČ
     if(empty(trim($_POST["psc"]))) {
         $psc_err = "Zadajte PSČ.";
     } else {
         $psc = trim($_POST["psc"]);
     }
     
-    // Validácia telefónu
     if(empty(trim($_POST["telefon"]))) {
         $telefon_err = "Zadajte telefónne číslo.";
     } else {
         $telefon = trim($_POST["telefon"]);
     }
     
-    // Validácia spôsobu platby
     if(empty($_POST["platba"])) {
         $platba_err = "Vyberte spôsob platby.";
     } else {
         $platba = $_POST["platba"];
     }
     
-    // Validácia spôsobu doručenia
     if(empty($_POST["dorucenie"])) {
         $dorucenie_err = "Vyberte spôsob doručenia.";
     } else {
         $dorucenie = $_POST["dorucenie"];
     }
     
-    // Poznámka (nepovinná)
     $poznamka = trim($_POST["poznamka"]);
     
-    // Kontrola chýb pred vložením do databázy
-    if(empty($adresa_err) && empty($mesto_err) && empty($psc_err) && empty($telefon_err) && empty($platba_err) && empty($dorucenie_err)) {
-        // Uloženie adresy používateľa, ak nie je vyplnená
-        if(empty($user_data['adresa']) || empty($user_data['mesto']) || empty($user_data['psc']) || empty($user_data['telefon'])) {
-            $update_sql = "UPDATE pouzivatelia SET adresa = ?, mesto = ?, psc = ?, telefon = ? WHERE id = ?";
+    if(empty($ulica_err) && empty($cislo_err) && empty($mesto_err) && empty($psc_err) && empty($telefon_err) && empty($platba_err) && empty($dorucenie_err)) {
+        if(empty($user_data['ulica']) || empty($user_data['cilso']) || empty($user_data['mesto']) || empty($user_data['psc']) || empty($user_data['telefon'])) {
+            $update_sql = "UPDATE pouzivatelia SET ulica = ?, cislo = ?, mesto = ?, psc = ?, telefon = ? WHERE id = ?";
             if($update_stmt = mysqli_prepare($conn, $update_sql)) {
-                mysqli_stmt_bind_param($update_stmt, "ssssi", $adresa, $mesto, $psc, $telefon, $_SESSION["id"]);
+                mysqli_stmt_bind_param($update_stmt, "sssssi", $ulica, $cislo, $mesto, $psc, $telefon, $_SESSION["id"]);
                 mysqli_stmt_execute($update_stmt);
                 mysqli_stmt_close($update_stmt);
             }
         }
         
-        // Začatie transakcie
         mysqli_begin_transaction($conn);
         
         try {
-            // Vytvorenie objednávky
-            // Vytvorenie objednávky - upravený SQL dotaz s objednavka_id namiesto id
-$objednavka_sql = "INSERT INTO objednavky (pouzivatel_id, meno, priezvisko, celkova_suma, sposob_platby, sposob_dorucenia, adresa, mesto, psc, telefon, poznamka, stav) 
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Nová')";            
-if($objednavka_stmt = mysqli_prepare($conn, $objednavka_sql)) {
-    mysqli_stmt_bind_param($objednavka_stmt, "issdsssssss", $_SESSION["id"], $meno, $priezvisko, $celkova_suma, $platba, $dorucenie, $adresa, $mesto, $psc, $telefon, $poznamka);
-    mysqli_stmt_execute($objednavka_stmt);
-    $objednavka_id = mysqli_insert_id($conn); // Toto by malo stále fungovať
-    mysqli_stmt_close($objednavka_stmt);
+        $objednavka_sql = "INSERT INTO objednavky (pouzivatel_id, meno, priezvisko, email, celkova_suma, sposob_platby, sposob_dorucenia, ulica, cislo, mesto, psc, telefon, poznamka, stav) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Nová')";            
+        if($objednavka_stmt = mysqli_prepare($conn, $objednavka_sql)) {
+            mysqli_stmt_bind_param($objednavka_stmt, "isssdssssssss", $_SESSION["id"], $meno, $priezvisko, $email, $celkova_suma, $platba, $dorucenie, $ulica, $cislo, $mesto, $psc, $telefon, $poznamka);
+            mysqli_stmt_execute($objednavka_stmt);
+            $objednavka_id = mysqli_insert_id($conn); 
+            mysqli_stmt_close($objednavka_stmt);
     
-    // Vloženie položiek objednávky
-    $polozky_sql = "INSERT INTO objednavka_produkty (objednavka_id, produkt_id, mnozstvo, cena_za_kus) VALUES (?, ?, ?, ?)";
+    $polozky_sql = "INSERT INTO objednavka_produkty (objednavka_id, produkt_id, mnozstvo, cena_za_kus, celkova_suma) VALUES (?, ?, ?, ?, ?)";
     if($polozky_stmt = mysqli_prepare($conn, $polozky_sql)) {
         foreach($_SESSION['kosik'] as $id => $item) {
-            // Uprav toto - použij produkt_id namiesto id ak je to tak v databáze
-            $produkt_id = $item['id']; // Toto by malo byť produkt_id v závislosti od štruktúry košíka
-            mysqli_stmt_bind_param($polozky_stmt, "iiid", $objednavka_id, $produkt_id, $item['mnozstvo'], $item['cena']);
+            $produkt_id = $item['id']; 
+            $cena_za_kus = $item['cena'];
+            $mnozstvo = $item['mnozstvo'];
+            $celkova_suma_polozky = $cena_za_kus * $mnozstvo;
+            mysqli_stmt_bind_param($polozky_stmt, "iiidd", $objednavka_id, $produkt_id, $mnozstvo, $cena_za_kus, $celkova_suma_polozky);
             mysqli_stmt_execute($polozky_stmt);
             
-            // Aktualizácia stavu skladu - uprav WHERE podmienku na produkt_id
             $update_stock_sql = "UPDATE produkty SET dostupne_mnozstvo = dostupne_mnozstvo - ? WHERE produkt_id = ?";
             if($update_stock_stmt = mysqli_prepare($conn, $update_stock_sql)) {
-                mysqli_stmt_bind_param($update_stock_stmt, "ii", $item['mnozstvo'], $produkt_id);
+                mysqli_stmt_bind_param($update_stock_stmt, "ii", $mnozstvo, $produkt_id);
                 mysqli_stmt_execute($update_stock_stmt);
                 mysqli_stmt_close($update_stock_stmt);
             }
@@ -139,25 +128,22 @@ if($objednavka_stmt = mysqli_prepare($conn, $objednavka_sql)) {
         mysqli_stmt_close($polozky_stmt);
     }
                 
-                // Commit transakcie
                 mysqli_commit($conn);
                 
-                // Vyprázdnenie košíka
                 $_SESSION['kosik'] = array();
                 
-                // Presmerovanie na stránku s potvrdením
-                header("Location: moje-objednavky.php?success=1&id=".$objednavka_id);
+                $_SESSION['objednavka_id'] = $objednavka_id;
+
+                header("Location: thankyou.php");
                 exit;
             }
         } catch (Exception $e) {
-            // Rollback v prípade chyby
             mysqli_rollback($conn);
             echo "Nastala chyba pri spracovaní objednávky: " . $e->getMessage();
         }
     }
 }
 
-// Zatvorenie spojenia
 mysqli_close($conn);
 ?>
 
@@ -171,7 +157,7 @@ mysqli_close($conn);
         <section class="about-section" id="section_objednavka">
             <?php require_once "parts/nav.php"; ?>
             <div class="section-overlay"></div>
-            <div class="container">
+            <div class="container" style="padding-top: 160px;" >
                 <div class="row" >
                     <div class="col-12">
                         <em class="text-white">Finalizácia</em>
@@ -186,23 +172,51 @@ mysqli_close($conn);
                             <div class="card-body">
                                 <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                                     <div class="mb-3">
-                                        <label for="adresa" class="form-label">Adresa</label>
-                                        <input type="text" name="adresa" id="adresa" class="form-control bg-dark text-white <?php echo (!empty($adresa_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $adresa; ?>" required>
-                                        <span class="invalid-feedback"><?php echo $adresa_err; ?></span>
-                                    </div>
-                                    
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="mesto" class="form-label">Mesto</label>
-                                            <input type="text" name="mesto" id="mesto" class="form-control bg-dark text-white <?php echo (!empty($mesto_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $mesto; ?>" required>
-                                            <span class="invalid-feedback"><?php echo $mesto_err; ?></span>
+                                        <h6 class="text-white">Informácie o objednávateľovi</h6>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="meno" class="form-label">Meno</label>
+                                                    <input type="text" id="meno" class="form-control bg-dark text-white" value="<?php echo $meno; ?>">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="priezvisko" class="form-label">Priezvisko</label>
+                                                    <input type="text" id="priezvisko" class="form-control bg-dark text-white" value="<?php echo $priezvisko; ?>">
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="email" class="form-label">Email</label>
+                                                <input type="email" id="email" class="form-control bg-dark text-white" value="<?php echo $email; ?>">
+                                            </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label for="psc" class="form-label">PSČ</label>
-                                            <input type="text" name="psc" id="psc" class="form-control bg-dark text-white <?php echo (!empty($psc_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $psc; ?>" required>
-                                            <span class="invalid-feedback"><?php echo $psc_err; ?></span>
-                                        </div>
+        
+                                    <hr class="my-4 border-secondary">
+        
+                                    <div class="mb-3">
+                                        <h6 class="text-white">Dodacie údaje</h6>
+                                        <label for="ulica" class="form-label">Ulica</label>
+                                        <input type="text" name="ulica" id="ulica" class="form-control bg-dark text-white <?php echo (!empty($ulica_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $ulica; ?>" required>
+                                        <span class="invalid-feedback"><?php echo $ulica_err; ?></span>
                                     </div>
+
+                                    <div class="col-md-4">
+                                        <label for="cislo" class="form-label">Číslo domu</label>
+                                        <input type="text" name="cislo" id="cislo" class="form-control bg-dark text-white <?php echo (!empty($cislo_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $cislo ?? ''; ?>" required>
+                                        <span class="invalid-feedback"><?php echo $cislo_err ?? ''; ?></span>
+                                    </div>
+                                
+            
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="mesto" class="form-label">Mesto</label>
+                                        <input type="text" name="mesto" id="mesto" class="form-control bg-dark text-white <?php echo (!empty($mesto_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $mesto; ?>" required>
+                                        <span class="invalid-feedback"><?php echo $mesto_err; ?></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="psc" class="form-label">PSČ</label>
+                                        <input type="text" name="psc" id="psc" class="form-control bg-dark text-white <?php echo (!empty($psc_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $psc; ?>" required>
+                                        <span class="invalid-feedback"><?php echo $psc_err; ?></span>
+                                    </div>
+                                </div>
 
                                     <div class="mb-3">
                                         <label for="telefon" class="form-label">Telefón</label>

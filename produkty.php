@@ -2,11 +2,9 @@
 session_start();
 require_once "db/config.php";
 
-// Jednoduchý dopyt na získanie všetkých produktov
 $sql = "SELECT * FROM produkty";
 $result = mysqli_query($conn, $sql);
 
-// Kontrola chyby pri dopyte
 if (!$result) {
     die("Chyba pri načítaní produktov: " . mysqli_error($conn));
 }
@@ -56,7 +54,6 @@ if (!$result) {
 
                                             <div class="mt-3 w-100">
                                                 <?php 
-                                                // Upravené pre použitie produkt_id namiesto id
                                                 echo '<a href="produkt.php?id=' . $row['produkt_id'] . '" class="btn custom-btn">Zobraziť detail</a>';
                                                 
                                                 $dostupne = isset($row['dostupne_mnozstvo']) ? $row['dostupne_mnozstvo'] : 0;

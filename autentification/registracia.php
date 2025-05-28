@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Ak je používateľ prihlásený, presmerujeme ho na hlavnú stránku
 if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
     header("location: ../index.php"); 
     exit;
@@ -9,13 +8,10 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
 
 require_once "../db/config.php";
 
-// Definícia premenných a inicializácia s prázdnymi hodnotami
 $meno = $priezvisko = $email = $heslo = $heslo_potvrdenie = "";
 $meno_err = $priezvisko_err = $email_err = $heslo_err = $heslo_potvrdenie_err = "";
 
-// Spracovanie údajov z formulára po odoslaní
 if($_SERVER["REQUEST_METHOD"] == "POST"){
-    // Validácia mena
     if(empty(trim($_POST["meno"]))){
         $meno_err = "Zadajte vaše meno.";
     } else{
@@ -54,7 +50,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         }
     }
 
-    // Validácia hesla
     if(empty(trim($_POST["heslo"]))){
         $heslo_err = "Zadajte heslo.";     
     } elseif(strlen(trim($_POST["heslo"])) < 6){
@@ -63,7 +58,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         $heslo = trim($_POST["heslo"]);
     }
     
-    // Validácia potvrdenia hesla
     if(empty(trim($_POST["heslo_potvrdenie"]))){
         $heslo_potvrdenie_err = "Potvrďte heslo.";     
     } else{
@@ -73,37 +67,29 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         }
     }
     
-    // Kontrola chýb pred vložením do databázy
     if(empty($meno_err) && empty($priezvisko_err) && empty($email_err) && empty($heslo_err) && empty($heslo_potvrdenie_err)){
         
-        // Pripravenie insert príkazu - iba pre existujúce stĺpce v databáze
         $sql = "INSERT INTO pouzivatelia (meno, priezvisko, email, heslo) VALUES (?, ?, ?, ?)";
          
         if($stmt = mysqli_prepare($conn, $sql)){
-            // Naviazanie premenných na parametre prepared statementu
             mysqli_stmt_bind_param($stmt, "ssss", $param_meno, $param_priezvisko, $param_email, $param_heslo);
             
-            // Nastavenie parametrov
             $param_meno = $meno;
             $param_priezvisko = $priezvisko;
             $param_email = $email;
-            $param_heslo = password_hash($heslo, PASSWORD_DEFAULT); // Vytvorenie hash-u hesla
+            $param_heslo = password_hash($heslo, PASSWORD_DEFAULT);
             
-            // Pokus o vykonanie prepared statementu
             if(mysqli_stmt_execute($stmt)){
-                // Presmerovanie na prihlasovaciu stránku
                 header("location: prihlasenie.php");
                 exit;
             } else{
                 echo "Ups! Niečo sa pokazilo. Skúste to neskôr.";
             }
 
-            // Zatvorenie statementu
             mysqli_stmt_close($stmt);
         }
     }
     
-    // Zatvorenie spojenia
     mysqli_close($conn);
 }
 ?>
@@ -130,7 +116,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             <div class="col-lg-6 col-md-8">
                 <div class="card bg-dark text-white">
                     <div class="card-header text-center">
-                        <h2>Registrácia</h2>
+                        <h2 class="text-white">Registrácia</h2>
                         <a href="../index.php" class="text-white text-decoration-none">
                             <i class="bi bi-arrow-left"></i> Späť na hlavnú stránku
                         </a>

@@ -2,34 +2,29 @@
 session_start();
 require_once "db/config.php";
 
-// Inicializácia košíka
 if(!isset($_SESSION['kosik'])) {
     $_SESSION['kosik'] = array();
 }
 
-// Pridanie produktu do košíka
 if(isset($_GET['action']) && $_GET['action'] == 'add' && isset($_GET['id'])) {
     $produkt_id = $_GET['id'];
     $mnozstvo = isset($_GET['mnozstvo']) ? (int)$_GET['mnozstvo'] : 1;
     
-    // Získanie informácií o produkte - upravené pre nový názov stĺpca
     $sql = "SELECT * FROM produkty WHERE produkt_id = ?";
     if($stmt = mysqli_prepare($conn, $sql)) {
         mysqli_stmt_bind_param($stmt, "i", $produkt_id);
         if(mysqli_stmt_execute($stmt)) {
             $result = mysqli_stmt_get_result($stmt);
             if($produkt = mysqli_fetch_assoc($result)) {
-                // Kontrola dostupnosti
                 $dostupne_mnozstvo = isset($produkt['dostupne_mnozstvo']) ? $produkt['dostupne_mnozstvo'] : 
                                     (isset($produkt['mnozstvo_na_sklade']) ? $produkt['mnozstvo_na_sklade'] : 0);
                 
                 if($dostupne_mnozstvo >= $mnozstvo) {
-                    // Pridanie alebo aktualizácia položky v košíku
                     if(isset($_SESSION['kosik'][$produkt_id])) {
                         $_SESSION['kosik'][$produkt_id]['mnozstvo'] += $mnozstvo;
                     } else {
                         $_SESSION['kosik'][$produkt_id] = array(
-                            'id' => $produkt['produkt_id'], // Upravené pre nový názov stĺpca
+                            'id' => $produkt['produkt_id'], 
                             'nazov' => $produkt['nazov'],
                             'cena' => $produkt['cena'],
                             'mnozstvo' => $mnozstvo,
@@ -93,7 +88,6 @@ foreach($_SESSION['kosik'] as $item) {
         <section class="about-section section-padding" id="section_kosik">
             <div class="section-overlay"></div>
             <div class="container">
-                <!-- Odsadenie len pre textový obsah, nie celú sekciu -->
                 <div class="row" style="padding-top: 60px;">
                     <div class="col-12">
                         <em class="text-white">Váš nákup</em>
@@ -152,7 +146,7 @@ foreach($_SESSION['kosik'] as $item) {
                                     </a>
                                     <div>
                                         <button type="submit" name="update_kosik" class="btn custom-btn custom-border-btn me-2">
-                                            <i class="bi bi-arrow-clockwise"></i> Aktualizovať košík
+                                            <i class="bi bi-arrow-clockwise"></i> Uložiť košík
                                         </button>
                                         <a href="objednavka.php" class="btn custom-btn">
                                             <i class="bi bi-check-circle"></i> Dokončiť objednávku

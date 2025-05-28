@@ -1,7 +1,6 @@
 <?php
 require_once "config.php";
 
-// SQL príkaz na vytvorenie tabuľky pouzivatelia s existujúcou štruktúrou
 $sql_create_table = "CREATE TABLE IF NOT EXISTS pouzivatelia (
     id INT AUTO_INCREMENT PRIMARY KEY,
     meno VARCHAR(100) NOT NULL,
@@ -38,7 +37,8 @@ $sql_create_objednavky = "CREATE TABLE IF NOT EXISTS objednavky (
     meno VARCHAR(100) NOT NULL,
     priezvisko VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
-    adresa VARCHAR(255) NOT NULL,
+    ulica VARCHAR(50) NOT NULL,
+    cislo VARCHAR(10) NOT NULL,
     mesto VARCHAR(100) NOT NULL,
     psc VARCHAR(10) NOT NULL,
     telefon VARCHAR(20) NOT NULL,
@@ -62,6 +62,7 @@ $sql_create_objednavka_produkty = "CREATE TABLE IF NOT EXISTS objednavka_produkt
     produkt_id INT NOT NULL,
     mnozstvo INT NOT NULL,
     cena_za_kus DECIMAL(10,2) NOT NULL,
+    celkova_suma DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (objednavka_id) REFERENCES objednavky(objednavka_id),
     FOREIGN KEY (produkt_id) REFERENCES produkty(produkt_id)
 )";
@@ -72,15 +73,12 @@ if (mysqli_query($conn, $sql_create_objednavka_produkty)) {
     echo "Chyba pri vytváraní tabuľky objednavka_produkty: " . mysqli_error($conn) . "<br>";
 }
 
-// Vloženie testovacieho admin používateľa (heslo: admin123)
 $admin_heslo = password_hash("admin123", PASSWORD_DEFAULT);
 
-// Kontrolujeme, či admin existuje
 $sql_check_admin = "SELECT id FROM pouzivatelia WHERE meno = 'Admin' AND je_admin = 1";
 $result = mysqli_query($conn, $sql_check_admin);
 
 if (mysqli_num_rows($result) == 0) {
-    // Vkladáme len existujúce stĺpce
     $sql_insert_admin = "INSERT INTO pouzivatelia (meno, email, heslo, je_admin) 
                          VALUES ('Admin', 'admin@a.sk', '$admin_heslo', 1)";
     

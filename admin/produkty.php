@@ -10,7 +10,6 @@ require_once "../db/config.php";
 require_once "../functions/admin_css.php";
 require_once "../functions/admin_parts.php";
 
-// Inicializácia premenných pre formulár
 $nazov = $popis = $cena = $mnozstvo = $obrazok = "";
 $nazov_err = $popis_err = $cena_err = $mnozstvo_err = $obrazok_err = "";
 $edit_id = 0;
@@ -95,7 +94,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     if(empty($nazov_err) && empty($popis_err) && empty($cena_err) && empty($mnozstvo_err) && empty($obrazok_err)) {
         if(isset($_POST["edit_id"]) && !empty($_POST["edit_id"])) {
             if(!empty($obrazok)) {
-                $sql = "UPDATE produkty SET nazov=?, popis=?, cena=?, dostupne_mnozstvo=?, obrazok=? WHERE id=?";
+                $sql = "UPDATE produkty SET nazov=?, popis=?, cena=?, dostupne_mnozstvo=?, obrazok=? WHERE produkt_id=?";
                 $stmt = mysqli_prepare($conn, $sql);
                 mysqli_stmt_bind_param($stmt, "ssdisi", $nazov, $popis, $cena, $mnozstvo, $obrazok, $_POST["edit_id"]);
             } else {

@@ -1,21 +1,16 @@
 <?php
-// Inicializácia session
 session_start();
 
-// Ak je používateľ už prihlásený, presmeruj ho na hlavnú stránku
 if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
     header("location: ../index.php");
     exit;
 }
 
-// Pripojenie ku konfiguračnému súboru databázy
 require_once "../db/config.php";
 
-// Definovanie premenných a inicializácia prázdnymi hodnotami
 $email = $heslo = "";
 $email_err = $heslo_err = $login_err = "";
 
-// Spracovanie formulárových dát po odoslaní
 if($_SERVER["REQUEST_METHOD"] == "POST"){
  
     // Kontrola, či bolo zadané používateľské meno
@@ -34,28 +29,20 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     
     // Validácia prihlasovacích údajov
     if(empty($email_err) && empty($heslo_err)){
-        // Príprava select výrazu - používa stĺpce ktoré existujú v databáze
         $sql = "SELECT id, meno, priezvisko, email, heslo, je_admin FROM pouzivatelia WHERE email = ?";
         
         if($stmt = mysqli_prepare($conn, $sql)){
-            // Priradenie parametrov k prepare statement
             mysqli_stmt_bind_param($stmt, "s", $param_email);
             
-            // Nastavenie parametrov
             $param_email = $email;
             
-            // Pokus o vykonanie prepared statement
             if(mysqli_stmt_execute($stmt)){
-                // Uloženie výsledku
                 mysqli_stmt_store_result($stmt);
                 
-                // Kontrola, či meno existuje, ak áno - overenie hesla
                 if(mysqli_stmt_num_rows($stmt) == 1){                    
-                    // Priradenie hodnôt z výsledku do premenných
                     mysqli_stmt_bind_result($stmt, $id, $db_meno, $db_priezvisko, $db_email, $hashed_password, $je_admin);
                     if(mysqli_stmt_fetch($stmt)){
                         if(password_verify($heslo, $hashed_password)){
-                            // Heslo je správne, začiatok novej session
                             session_start();
                             
                             // Uloženie dát do session premenných
@@ -66,27 +53,22 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                             $_SESSION["email"] = $db_email;
                             $_SESSION["je_admin"] = $je_admin;
                             
-                            // Presmerovanie na hlavnú stránku
                             header("location: ../index.php");
                         } else{
-                            // Heslo nie je platné, zobrazenie chybovej hlášky
                             $login_err = "Neplatný email alebo heslo.";
                         }
                     }
                 } else{
-                    // Email neexistuje, zobrazenie chybovej hlášky
                     $login_err = "Neplatný email alebo heslo.";
                 }
             } else{
                 echo "Ups! Niečo sa pokazilo. Skúste to prosím neskôr.";
             }
 
-            // Zatvorenie statement
             mysqli_stmt_close($stmt);
         }
     }
     
-    // Zatvorenie spojenia
     mysqli_close($conn);
 }
 ?>
@@ -113,7 +95,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             <div class="col-lg-6 col-md-8">
                 <div class="card bg-dark text-white">
                     <div class="card-header text-center">
-                        <h2>Prihlásenie</h2>
+                        <h2 class="text-white">Prihlásenie</h2>
                         <a href="../index.php" class="text-white text-decoration-none">
                             <i class="bi bi-arrow-left"></i> Späť na hlavnú stránku
                         </a>
