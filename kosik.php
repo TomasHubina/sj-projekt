@@ -16,8 +16,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'add' && isset($_GET['id'])) {
         if(mysqli_stmt_execute($stmt)) {
             $result = mysqli_stmt_get_result($stmt);
             if($produkt = mysqli_fetch_assoc($result)) {
-                $dostupne_mnozstvo = isset($produkt['dostupne_mnozstvo']) ? $produkt['dostupne_mnozstvo'] : 
-                                    (isset($produkt['mnozstvo_na_sklade']) ? $produkt['mnozstvo_na_sklade'] : 0);
+                $dostupne_mnozstvo = isset($produkt['dostupne_mnozstvo']) ? $produkt['dostupne_mnozstvo'] : 0;
                 
                 if($dostupne_mnozstvo >= $mnozstvo) {
                     if(isset($_SESSION['kosik'][$produkt_id])) {

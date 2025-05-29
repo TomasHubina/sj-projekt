@@ -1,105 +1,115 @@
 <?php
-require_once "config.php";
-
-$sql_create_table = "CREATE TABLE IF NOT EXISTS pouzivatelia (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    meno VARCHAR(100) NOT NULL,
-    priezvisko VARCHAR(100) NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    heslo VARCHAR(255) NOT NULL,
-    je_admin TINYINT(1) NOT NULL DEFAULT 0
-)"; 
-
-if (mysqli_query($conn, $sql_create_table)) {
-    echo "Tabuľka pouzivatelia bola úspešne vytvorená.<br>";
-} else {
-    echo "Chyba pri vytváraní tabuľky pouzivatelia: " . mysqli_error($conn) . "<br>";
-} 
-
-$sql_create_produkty = "CREATE TABLE IF NOT EXISTS produkty (
-    produkt_id INT AUTO_INCREMENT PRIMARY KEY,
-    nazov VARCHAR(255) NOT NULL,
-    popis TEXT,
-    cena DECIMAL(10,2) NOT NULL,
-    dostupne_mnozstvo INT NOT NULL DEFAULT 0,
-    obrazok VARCHAR(255)
-)";
-
-if (mysqli_query($conn, $sql_create_produkty)) {
-    echo "Tabuľka produkty bola úspešne vytvorená.<br>";
-} else {
-    echo "Chyba pri vytváraní tabuľky produkty: " . mysqli_error($conn) . "<br>";
-}
-
-$sql_create_objednavky = "CREATE TABLE IF NOT EXISTS objednavky (
-    objednavka_id INT AUTO_INCREMENT PRIMARY KEY,
-    pouzivatel_id INT NOT NULL,
-    meno VARCHAR(100) NOT NULL,
-    priezvisko VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    ulica VARCHAR(50) NOT NULL,
-    cislo VARCHAR(10) NOT NULL,
-    mesto VARCHAR(100) NOT NULL,
-    psc VARCHAR(10) NOT NULL,
-    telefon VARCHAR(20) NOT NULL,
-    celkova_suma DECIMAL(10,2) NOT NULL,
-    stav VARCHAR(50) NOT NULL DEFAULT 'Nová',
-    sposob_platby VARCHAR(50) NOT NULL,
-    sposob_dorucenia VARCHAR(50) NOT NULL,
-    poznamka TEXT,
-    FOREIGN KEY (pouzivatel_id) REFERENCES pouzivatelia(id)
-)";
-
-if (mysqli_query($conn, $sql_create_objednavky)) {
-    echo "Tabuľka objednavky bola úspešne vytvorená.<br>";
-} else {
-    echo "Chyba pri vytváraní tabuľky objednavky: " . mysqli_error($conn) . "<br>";
-}
-
-$sql_create_objednavka_produkty = "CREATE TABLE IF NOT EXISTS objednavka_produkty (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    objednavka_id INT NOT NULL,
-    produkt_id INT NOT NULL,
-    mnozstvo INT NOT NULL,
-    cena_za_kus DECIMAL(10,2) NOT NULL,
-    celkova_suma DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (objednavka_id) REFERENCES objednavky(objednavka_id),
-    FOREIGN KEY (produkt_id) REFERENCES produkty(produkt_id)
-)";
-
-if (mysqli_query($conn, $sql_create_objednavka_produkty)) {
-    echo "Tabuľka objednavka_produkty bola úspešne vytvorená.<br>";
-} else {
-    echo "Chyba pri vytváraní tabuľky objednavka_produkty: " . mysqli_error($conn) . "<br>";
-}
-
-$admin_heslo = password_hash("admin123", PASSWORD_DEFAULT);
-
-$sql_check_admin = "SELECT id FROM pouzivatelia WHERE meno = 'Admin' AND je_admin = 1";
-$result = mysqli_query($conn, $sql_check_admin);
-
-if (mysqli_num_rows($result) == 0) {
-    $sql_insert_admin = "INSERT INTO pouzivatelia (meno, email, heslo, je_admin) 
-                         VALUES ('Admin', 'admin@a.sk', '$admin_heslo', 1)";
+class Database {
+    private static $instance = null;
+    private $conn;
     
-    if (mysqli_query($conn, $sql_insert_admin)) {
-        echo "Admin používateľ bol úspešne vytvorený.<br>";
-    } else {
-        echo "Chyba pri vytváraní admin používateľa: " . mysqli_error($conn) . "<br>";
+    private function __construct() {
+        try {
+            require_once 'config.php';
+            $this->conn = new PDO(DB_DSN, DB_USERNAME, DB_PASSWORD, PDO_OPTIONS);
+        } catch (PDOException $e) {
+            die("CHYBA: Nepodarilo sa pripojiť do databázy: " . $e->getMessage());
+        }
     }
-} else {
-    echo "Admin používateľ už existuje.<br>";
-}
+    
+    public static function getInstance() {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+    
+    public function getConnection() {
+        return $this->conn;
+    }
 
-// Overenie stĺpcov v tabuľke (pre diagnostiku)
-$result = mysqli_query($conn, "SHOW TABLES");
-echo "<h3>Tabuľky v databáze:</h3>";
-echo "<pre>";
-while ($row = mysqli_fetch_row($result)) {
-    echo $row[0] . "\n";
-}
-echo "</pre>";
+    public function query($sql, $params = []) {
+        try {
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute($params);
+            return $stmt;
+        } catch (PDOException $e) {
+            die("CHYBA: SQL príkaz zlyhal: " . $e->getMessage());
+        }
+    }
+    
+    public function fetchOne($sql, $params = []) {
+        $stmt = $this->query($sql, $params);
+        return $stmt->fetch();
+    }
+    
+    public function fetchAll($sql, $params = []) {
+        $stmt = $this->query($sql, $params);
+        return $stmt->fetchAll();
+    }
+    
+    public function lastInsertId() {
+        return $this->conn->lastInsertId();
+    }
 
-mysqli_close($conn);
-echo "Inštalácia databázy dokončená!";
+    public function createTables() {
+        $this->query("CREATE TABLE IF NOT EXISTS pouzivatelia (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            meno VARCHAR(100) NOT NULL,
+            priezvisko VARCHAR(100) NULL,
+            email VARCHAR(100) NOT NULL UNIQUE,
+            heslo VARCHAR(255) NOT NULL,
+            je_admin TINYINT(1) NOT NULL DEFAULT 0
+        )"); 
+
+        $this->query("CREATE TABLE IF NOT EXISTS produkty (
+            produkt_id INT AUTO_INCREMENT PRIMARY KEY,
+            nazov VARCHAR(255) NOT NULL,
+            popis TEXT,
+            cena DECIMAL(10,2) NOT NULL,
+            dostupne_mnozstvo INT NOT NULL DEFAULT 0,
+            obrazok VARCHAR(255)
+        )");
+
+        $this->query("CREATE TABLE IF NOT EXISTS objednavky (
+            objednavka_id INT AUTO_INCREMENT PRIMARY KEY,
+            pouzivatel_id INT NOT NULL,
+            meno VARCHAR(100) NOT NULL,
+            priezvisko VARCHAR(100) NOT NULL,
+            email VARCHAR(100) NOT NULL,
+            ulica VARCHAR(50) NOT NULL,
+            cislo VARCHAR(10) NOT NULL,
+            mesto VARCHAR(100) NOT NULL,
+            psc VARCHAR(10) NOT NULL,
+            telefon VARCHAR(20) NOT NULL,
+            celkova_suma DECIMAL(10,2) NOT NULL,
+            stav VARCHAR(50) NOT NULL DEFAULT 'Nová',
+            sposob_platby VARCHAR(50) NOT NULL,
+            sposob_dorucenia VARCHAR(50) NOT NULL,
+            poznamka TEXT,
+            FOREIGN KEY (pouzivatel_id) REFERENCES pouzivatelia(id)
+        )");
+
+        $this->query("CREATE TABLE IF NOT EXISTS objednavka_produkty (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            objednavka_id INT NOT NULL,
+            produkt_id INT NOT NULL,
+            mnozstvo INT NOT NULL,
+            cena_za_kus DECIMAL(10,2) NOT NULL,
+            celkova_suma DECIMAL(10,2) NOT NULL,
+            FOREIGN KEY (objednavka_id) REFERENCES objednavky(objednavka_id),
+            FOREIGN KEY (produkt_id) REFERENCES produkty(produkt_id)
+        )");
+
+        return true;
+    }
+
+        public function createAdminUser() {
+        $admin_exists = $this->fetchOne("SELECT id FROM pouzivatelia WHERE meno = ? AND je_admin = 1", ['Admin']);
+        
+        if (!$admin_exists) {
+            $admin_heslo = password_hash("admin123", PASSWORD_DEFAULT);
+            $this->query("INSERT INTO pouzivatelia (meno, email, heslo, je_admin) 
+                          VALUES (?, ?, ?, ?)", ['Admin', 'admin@a.sk', $admin_heslo, 1]);
+            return true;
+        }
+        
+        return false;
+    }
+}
 ?>

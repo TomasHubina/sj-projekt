@@ -88,7 +88,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     $poznamka = trim($_POST["poznamka"]);
     
     if(empty($ulica_err) && empty($cislo_err) && empty($mesto_err) && empty($psc_err) && empty($telefon_err) && empty($platba_err) && empty($dorucenie_err)) {
-        if(empty($user_data['ulica']) || empty($user_data['cilso']) || empty($user_data['mesto']) || empty($user_data['psc']) || empty($user_data['telefon'])) {
+        if(empty($user_data['ulica']) || empty($user_data['cislo']) || empty($user_data['mesto']) || empty($user_data['psc']) || empty($user_data['telefon'])) {
             $update_sql = "UPDATE pouzivatelia SET ulica = ?, cislo = ?, mesto = ?, psc = ?, telefon = ? WHERE id = ?";
             if($update_stmt = mysqli_prepare($conn, $update_sql)) {
                 mysqli_stmt_bind_param($update_stmt, "sssssi", $ulica, $cislo, $mesto, $psc, $telefon, $_SESSION["id"]);

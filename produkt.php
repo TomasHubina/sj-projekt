@@ -35,7 +35,7 @@ if($stmt = mysqli_prepare($conn, $sql)) {
 
 $suvisiace_produkty = array();
 
-if(isset($produkt["kategoria"]) && !empty($produkt["kategoria"])) {
+/*if(isset($produkt["kategoria"]) && !empty($produkt["kategoria"])) {
     $sql_suvisiace = "SELECT * FROM produkty WHERE kategoria = ? AND produkt_id != ? LIMIT 3";
     
     if($stmt = mysqli_prepare($conn, $sql_suvisiace)) {
@@ -51,7 +51,7 @@ if(isset($produkt["kategoria"]) && !empty($produkt["kategoria"])) {
         
         mysqli_stmt_close($stmt);
     }
-} else {
+} else {*/
     $sql_suvisiace = "SELECT * FROM produkty WHERE produkt_id != ? ORDER BY RAND() LIMIT 3";
     
     if($stmt = mysqli_prepare($conn, $sql_suvisiace)) {
@@ -67,7 +67,7 @@ if(isset($produkt["kategoria"]) && !empty($produkt["kategoria"])) {
         
         mysqli_stmt_close($stmt);
     }
-}
+//}
 
 mysqli_close($conn);
 
@@ -114,9 +114,9 @@ $dostupne_mnozstvo = isset($produkt["dostupne_mnozstvo"]) ? $produkt["dostupne_m
                         <div class="bg-dark p-4 rounded">
                             <h2 class="text-white mb-2"><?php echo htmlspecialchars($produkt["nazov"]); ?></h2>
                             
-                            <?php if(isset($produkt["kategoria"]) && !empty($produkt["kategoria"])): ?>
-                                <p class="text-light mb-4">Kategória: <?php echo htmlspecialchars($produkt["kategoria"]); ?></p>
-                            <?php endif; ?>
+                            <!--<?php // if(isset($produkt["kategoria"]) && !empty($produkt["kategoria"])): ?>
+                                <p class="text-light mb-4">Kategória: <?php //echo htmlspecialchars($produkt["kategoria"]); ?></p>
+                            <?php //endif; ?>-->
                             
                             <div class="price-tag bg-dark shadow-lg d-inline-block mb-4">
                                 <h3 class="text-white mb-0"><?php echo number_format($produkt["cena"], 2, ',', ' '); ?> €</h3>

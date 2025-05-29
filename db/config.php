@@ -3,12 +3,13 @@ define('DB_SERVER', 'localhost');
 define('DB_USERNAME', 'root');
 define('DB_PASSWORD', '');
 define('DB_NAME', 'praziarenkavydb');
+define('DB_CHARSET', 'utf8mb4');
 
-$conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+define('DB_DSN', 'mysql:host=' . DB_SERVER . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET);
 
-if ($conn === false) {
-    die("CHYBA: Nepodarilo sa pripojiť do databázy. " . mysqli_connect_error());
-}
-
-mysqli_set_charset($conn, "utf8mb4");
+define('PDO_OPTIONS', [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES => false
+]);
 ?>
