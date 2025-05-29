@@ -18,3 +18,8 @@
 
     <div class="hero-slides"></div>
 </section>
+<?php 
+require_once __DIR__ . '/../functions/cookies.php';
+cookies(); 
+?>
+

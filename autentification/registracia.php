@@ -7,6 +7,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
 }
 
 require_once "../db/config.php";
+require_once "../db/model/Pouzivatel.php";
 
 $meno = $priezvisko = $email = $heslo = $heslo_potvrdenie = "";
 $meno_err = $priezvisko_err = $email_err = $heslo_err = $heslo_potvrdenie_err = "";
@@ -29,24 +30,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     } elseif(!filter_var(trim($_POST["email"]), FILTER_VALIDATE_EMAIL)){
         $email_err = "Zadajte platný email.";
     } else{
-        $sql = "SELECT id FROM pouzivatelia WHERE email = ?";
+        $existujuci_pouzivatel = Pouzivatel::findByEmail(trim($_POST["email"]));
         
-        if($stmt = mysqli_prepare($conn, $sql)){
-            mysqli_stmt_bind_param($stmt, "s", $param_email);
-            $param_email = trim($_POST["email"]);
-            
-            if(mysqli_stmt_execute($stmt)){
-                mysqli_stmt_store_result($stmt);
-                
-                if(mysqli_stmt_num_rows($stmt) == 1){
-                    $email_err = "Tento email je už použitý.";
-                } else{
-                    $email = trim($_POST["email"]);
-                }
-            } else{
-                echo "Ups! Niečo sa pokazilo. Skúste to neskôr.";
-            }
-            mysqli_stmt_close($stmt);
+        if($existujuci_pouzivatel){
+            $email_err = "Tento email je už použitý.";
+        } else{
+            $email = trim($_POST["email"]);
         }
     }
 
@@ -67,31 +56,31 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         }
     }
     
-    if(empty($meno_err) && empty($priezvisko_err) && empty($email_err) && empty($heslo_err) && empty($heslo_potvrdenie_err)){
-        
-        $sql = "INSERT INTO pouzivatelia (meno, priezvisko, email, heslo) VALUES (?, ?, ?, ?)";
-         
-        if($stmt = mysqli_prepare($conn, $sql)){
-            mysqli_stmt_bind_param($stmt, "ssss", $param_meno, $param_priezvisko, $param_email, $param_heslo);
+    if(empty($meno_err) && empty($priezvisko_err) && empty($email_err) && empty($heslo_err) && empty($heslo_potvrdenie_err)){         
+            try {
+            // Vytvorenie nového používateľa pomocou OOP
+            $novy_pouzivatel = new Pouzivatel();
+            $novy_pouzivatel->setMeno($meno);
+            $novy_pouzivatel->setPriezvisko($priezvisko);
+            $novy_pouzivatel->setEmail($email);
+            $novy_pouzivatel->setPassword($heslo); // Táto metóda už zahŕňa password_hash()
             
-            $param_meno = $meno;
-            $param_priezvisko = $priezvisko;
-            $param_email = $email;
-            $param_heslo = password_hash($heslo, PASSWORD_DEFAULT);
+            // Uloženie používateľa do databázy
+            $id = $novy_pouzivatel->save();
             
-            if(mysqli_stmt_execute($stmt)){
+            if($id){
+                // Úspešná registrácia, presmerovanie na prihlásenie
                 header("location: prihlasenie.php");
                 exit;
             } else{
-                echo "Ups! Niečo sa pokazilo. Skúste to neskôr.";
+                echo "Ups! Niečo sa pokazilo pri ukladaní používateľa. Skúste to neskôr.";
             }
-
-            mysqli_stmt_close($stmt);
+        } catch (Exception $e) {
+            echo "Nastala chyba: " . $e->getMessage();
         }
     }
-    
-    mysqli_close($conn);
 }
+
 ?>
 
 <!doctype html>

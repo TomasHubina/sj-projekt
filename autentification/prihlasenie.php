@@ -7,6 +7,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
 }
 
 require_once "../db/config.php";
+require_once "../db/model/Pouzivatel.php";
 
 $email = $heslo = "";
 $email_err = $heslo_err = $login_err = "";
@@ -29,47 +30,37 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     
     // Validácia prihlasovacích údajov
     if(empty($email_err) && empty($heslo_err)){
-        $sql = "SELECT id, meno, priezvisko, email, heslo, je_admin FROM pouzivatelia WHERE email = ?";
-        
-        if($stmt = mysqli_prepare($conn, $sql)){
-            mysqli_stmt_bind_param($stmt, "s", $param_email);
+        try {
+            // Použitie statickej metódy verifyLogin z triedy Pouzivatel
+            $pouzivatel = Pouzivatel::verifyLogin($email, $heslo);
             
-            $param_email = $email;
-            
-            if(mysqli_stmt_execute($stmt)){
-                mysqli_stmt_store_result($stmt);
-                
-                if(mysqli_stmt_num_rows($stmt) == 1){                    
-                    mysqli_stmt_bind_result($stmt, $id, $db_meno, $db_priezvisko, $db_email, $hashed_password, $je_admin);
-                    if(mysqli_stmt_fetch($stmt)){
-                        if(password_verify($heslo, $hashed_password)){
-                            session_start();
+            if ($pouzivatel) {
+                //session_start();
                             
-                            // Uloženie dát do session premenných
-                            $_SESSION["loggedin"] = true;
-                            $_SESSION["id"] = $id;
-                            $_SESSION["meno"] = $db_meno;
-                            $_SESSION["priezvisko"] = $db_priezvisko;
-                            $_SESSION["email"] = $db_email;
-                            $_SESSION["je_admin"] = $je_admin;
+                $_SESSION["loggedin"] = true;
+                $_SESSION["id"] = $pouzivatel->getId();
+                $_SESSION["meno"] = $pouzivatel->getMeno();
+                $_SESSION["priezvisko"] = $pouzivatel->getPriezvisko();
+                $_SESSION["email"] = $pouzivatel->getEmail();
+                $_SESSION["je_admin"] = $pouzivatel->isAdmin();
                             
-                            header("location: ../index.php");
-                        } else{
-                            $login_err = "Neplatný email alebo heslo.";
-                        }
-                    }
-                } else{
-                    $login_err = "Neplatný email alebo heslo.";
+                if(isset($_SESSION['redirect_after_login']) && !empty($_SESSION['redirect_after_login'])) {
+                    $redirect = $_SESSION['redirect_after_login'];
+                    unset($_SESSION['redirect_after_login']);
+                    header("location: ../" . $redirect);
+                } else {
+                    header("location: ../index.php");
                 }
-            } else{
-                echo "Ups! Niečo sa pokazilo. Skúste to prosím neskôr.";
+                exit;
+            } else {
+                // Neúspešné prihlásenie
+                $login_err = "Neplatný email alebo heslo.";
             }
-
-            mysqli_stmt_close($stmt);
+        } catch (Exception $e) {
+            // Zachytenie prípadných chýb
+            $login_err = "Nastala chyba pri prihlasovaní: " . $e->getMessage();
         }
     }
-    
-    mysqli_close($conn);
 }
 ?>
 

@@ -7,7 +7,7 @@ class Pouzivatel {
     private $priezvisko;
     private $email;
     private $heslo; 
-    private $je_admin;
+    private $je_admin = 0;
     
     private $db;
     
@@ -71,7 +71,7 @@ class Pouzivatel {
         } else {
             $this->db->query(
                 "INSERT INTO pouzivatelia (meno, priezvisko, email, heslo, je_admin) VALUES (?, ?, ?, ?, ?)",
-                [$this->meno, $this->priezvisko, $this->email, password_hash($this->heslo, PASSWORD_DEFAULT), $this->je_admin]
+                [$this->meno, $this->priezvisko, $this->email, $this->heslo, $this->je_admin]
             );
             $this->id = $this->db->lastInsertId();
             return $this->id;
