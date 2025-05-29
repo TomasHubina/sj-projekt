@@ -6,7 +6,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     exit;
 }
 
-if(!isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] !== 1){
+if(!isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] != 1){
     header("location: ../index.php");
     exit;
 }
@@ -14,15 +14,9 @@ if(!isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] !== 1){
 require_once "../db/config.php";
 require_once "../functions/admin_css.php";
 require_once "../functions/admin_parts.php";
+require_once "../db/model/Pouzivatel.php";
 
-// Získanie zoznamu používateľov
-$sql = "SELECT id, meno, priezvisko, email, je_admin, datum_vytvorenia FROM pouzivatelia ORDER BY datum_vytvorenia DESC";
-$result = mysqli_query($conn, $sql);
-
-// Kontrola chyby pri dopyte
-if (!$result) {
-    die("Chyba pri načítaní používateľov: " . mysqli_error($conn));
-}
+$pouzivatelia = Pouzivatel::getAll();
 ?>
 
 <!doctype html>
@@ -60,7 +54,7 @@ if (!$result) {
                                         Zoznam používateľov
                                     </div>
                                     <div class="card-body">
-                                        <?php if(mysqli_num_rows($result) > 0): ?>
+                                        <?php if(count($pouzivatelia) > 0): ?>
                                             <div class="table-responsive">
                                                 <table class="table table-dark table-hover">
                                                     <thead>
@@ -74,14 +68,14 @@ if (!$result) {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <?php while($row = mysqli_fetch_assoc($result)): ?>
+                                                        <?php foreach($pouzivatelia as $pouzivatel): ?>
                                                             <tr>
-                                                                <td><?php echo $row['id']; ?></td>
-                                                                <td><?php echo htmlspecialchars($row['meno']); ?></td>
-                                                                <td><?php echo htmlspecialchars($row['priezvisko']); ?></td>
-                                                                <td><?php echo htmlspecialchars($row['email']); ?></td>
+                                                                <td><?php $pouzivatel->getId(); ?></td>
+                                                                <td><?php echo htmlspecialchars($pouzivatel->getMeno()); ?></td>
+                                                                <td><?php echo htmlspecialchars($pouzivatel->getPriezvisko()); ?></td>
+                                                                <td><?php echo htmlspecialchars($pouzivatel->getEmail()); ?></td>
                                                                 <td>
-                                                                    <?php if($row['je_admin'] == 1): ?>
+                                                                    <?php if($pouzivatel->isAdmin() == 1): ?>
                                                                         <span class="badge bg-primary">Admin</span>
                                                                     <?php else: ?>
                                                                         <span class="badge bg-success">Používateľ</span>
@@ -89,15 +83,16 @@ if (!$result) {
                                                                 </td>
                                                                 <td>
                                                                     <?php 
-                                                                        if(isset($row['datum_vytvorenia'])) {
-                                                                            echo date("d.m.Y H:i", strtotime($row['datum_vytvorenia']));
+                                                                        $datum = $pouzivatel->getDatum();
+                                                                        if($datum) {
+                                                                            echo date("d.m.Y H:i", strtotime($datum));
                                                                         } else {
                                                                             echo "Neznámy";
                                                                         }
                                                                     ?>
                                                                 </td>
                                                             </tr>
-                                                        <?php endwhile; ?>
+                                                        <?php endforeach; ?>
                                                     </tbody>
                                                 </table>
                                             </div>

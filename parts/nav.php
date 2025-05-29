@@ -1,6 +1,23 @@
+<?php
+// Kontrola, či je session inicializovaná
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Pomocná funkcia pre relatívne cesty
+function getBasePath() {
+    // Detekuje, či je nav.php volaný z podadresára alebo z hlavného adresára
+    $scriptName = $_SERVER['SCRIPT_NAME'];
+    return (strpos($scriptName, '/admin/') !== false || strpos($scriptName, '/autentification/') !== false) 
+        ? '../' : '';
+}
+
+$basePath = getBasePath();
+?>
+
 <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
-        <a class="navbar-brand" href="index.php">
+        <a class="navbar-brand" href="<?php echo $basePath; ?>index.php">
             <span>Gold Coffee</span>
         </a>
 
@@ -11,56 +28,51 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mx-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" href="index.php">Domov</a>
+                    <a class="nav-link active" href="<?php echo $basePath; ?>index.php">Domov</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="#section_2">O nás</a>
+                    <a class="nav-link" href="<?php echo $basePath; ?>index.php#section_2">O nás</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="#barista-team">Náš tím</a>
+                    <a class="nav-link" href="<?php echo $basePath; ?>index.php#barista-team">Náš tím</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="#section_3">Naša káva</a>
+                    <a class="nav-link" href="<?php echo $basePath; ?>index.php#section_3">Naša káva</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="#section_4">Referencie</a>
+                    <a class="nav-link" href="<?php echo $basePath; ?>index.php#section_4">Referencie</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="#section_5">Kontakt</a>
+                    <a class="nav-link" href="<?php echo $basePath; ?>index.php#section_5">Kontakt</a>
                 </li>
             </ul>
 
             <div class="d-lg-flex align-items-center">
                 <?php
-                // Kontrola, či je session inicializovaná
-                if (session_status() === PHP_SESSION_NONE) {
-                    session_start();
-                }
-                
                 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
                     <div class="dropdown">
                         <button class="btn custom-btn dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person"></i> <?php echo htmlspecialchars($_SESSION["meno"]); ?>
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="userDropdown">
-                            <?php if (isset($_SESSION["je_admin"]) && $_SESSION["je_admin"] === 1): ?>
-                                <li><a class="dropdown-item" href="admin/index.php">Admin panel</a></li>
+                            <?php if (isset($_SESSION["je_admin"]) && $_SESSION["je_admin"] == 1): ?>
+                                <li><a class="dropdown-item" href="<?php echo $basePath; ?>admin/index.php">Admin panel</a></li>
                             <?php endif; ?>
-                            <li><a class="dropdown-item" href="../autentification/odhlasenie.php">Odhlásiť sa</a></li>
+                            <li><a class="dropdown-item" href="<?php echo $basePath; ?>autentification/odhlasenie.php">Odhlásiť sa</a></li>
                         </ul>
                     </div>
                 <?php else: ?>
-                    <a class="btn custom-btn" href="autentification/prihlasenie.php">
+                    <a class="btn custom-btn" href="<?php echo $basePath; ?>autentification/prihlasenie.php">
                         <i class="bi bi-person"></i> Prihlásenie
                     </a>
                 <?php endif; ?>
                 
-                <a class="btn custom-btn custom-border-btn ms-2" href="kosik.php">
+                <a class="btn custom-btn custom-border-btn ms-2" href="<?php echo $basePath; ?>kosik.php">
                     <i class="bi bi-cart"></i> Košík
                     <?php
                     // Dynamicky vypočítaný počet položiek v košíku alebo skrytý, ak nie je implementované

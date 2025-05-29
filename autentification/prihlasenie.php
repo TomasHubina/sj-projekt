@@ -14,24 +14,20 @@ $email_err = $heslo_err = $login_err = "";
 
 if($_SERVER["REQUEST_METHOD"] == "POST"){
  
-    // Kontrola, či bolo zadané používateľské meno
     if(empty(trim($_POST["email"]))){
         $email_err = "Zadajte emailovú adresu.";
     } else{
         $email = trim($_POST["email"]);
     }
     
-    // Kontrola, či bolo zadané heslo
     if(empty(trim($_POST["heslo"]))){
         $heslo_err = "Prosím, zadajte heslo.";
     } else{
         $heslo = trim($_POST["heslo"]);
     }
     
-    // Validácia prihlasovacích údajov
     if(empty($email_err) && empty($heslo_err)){
         try {
-            // Použitie statickej metódy verifyLogin z triedy Pouzivatel
             $pouzivatel = Pouzivatel::verifyLogin($email, $heslo);
             
             if ($pouzivatel) {
@@ -53,11 +49,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 }
                 exit;
             } else {
-                // Neúspešné prihlásenie
                 $login_err = "Neplatný email alebo heslo.";
             }
         } catch (Exception $e) {
-            // Zachytenie prípadných chýb
             $login_err = "Nastala chyba pri prihlasovaní: " . $e->getMessage();
         }
     }

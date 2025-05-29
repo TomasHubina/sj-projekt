@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] !== 1) {
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] != 1) {
     header("location: ../authentification/prihlasenie.php");
     exit;
 }
@@ -9,30 +9,34 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_S
 require_once "../db/config.php";
 require_once "../functions/admin_css.php";
 require_once "../functions/admin_parts.php";
+require_once "../db/model/Produkt.php";
 
 $nazov = $popis = $cena = $mnozstvo = $obrazok = "";
 $nazov_err = $popis_err = $cena_err = $mnozstvo_err = $obrazok_err = "";
 $edit_id = 0;
 
-// Mazanie produktu
 if(isset($_GET["delete"]) && !empty($_GET["delete"])) {
-    $sql = "DELETE FROM produkty WHERE produkt_id = ?";
-    
-    if($stmt = mysqli_prepare($conn, $sql)) {
-        mysqli_stmt_bind_param($stmt, "i", $_GET["delete"]);
-        
-        if(mysqli_stmt_execute($stmt)) {
-            header("location: produkty.php?status=deleted");
-            exit;
-        } else {
-            echo "Ups! Niečo sa pokazilo. Skúste to neskôr.";
-        }
-        
-        mysqli_stmt_close($stmt);
+    try {
+        $produkt = Produkt::findById($_GET["delete"]);
+        if($produkt) {
+            $obrazok_na_vymazanie = $produkt->getObrazok();
+            
+            if($produkt->delete()) {
+                if(!empty($obrazok_na_vymazanie)) {
+                    $cesta_k_obrazku = "../images/products/" . $obrazok_na_vymazanie;
+                    if(file_exists($cesta_k_obrazku)) {
+                        unlink($cesta_k_obrazku);
+                    }
+                }
+                header("location: produkty.php?status=deleted");
+                exit;
+            }
+        } 
+    } catch(Exception $e) {
+        echo "Ups! Nastala chyba: " . $e->getMessage();
     }
 }
 
-// Spracovanie formulára pre pridanie/úpravu
 if($_SERVER["REQUEST_METHOD"] == "POST") {
     if(empty(trim($_POST["nazov"]))) {
         $nazov_err = "Zadajte názov produktu.";
@@ -90,65 +94,94 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
     
-    // Kontrola chýb pred odoslaním do databázy
     if(empty($nazov_err) && empty($popis_err) && empty($cena_err) && empty($mnozstvo_err) && empty($obrazok_err)) {
-        if(isset($_POST["edit_id"]) && !empty($_POST["edit_id"])) {
-            if(!empty($obrazok)) {
-                $sql = "UPDATE produkty SET nazov=?, popis=?, cena=?, dostupne_mnozstvo=?, obrazok=? WHERE produkt_id=?";
-                $stmt = mysqli_prepare($conn, $sql);
-                mysqli_stmt_bind_param($stmt, "ssdisi", $nazov, $popis, $cena, $mnozstvo, $obrazok, $_POST["edit_id"]);
-            } else {
-                $sql = "UPDATE produkty SET nazov=?, popis=?, cena=?, dostupne_mnozstvo=? WHERE produkt_id=?";
-                $stmt = mysqli_prepare($conn, $sql);
-                mysqli_stmt_bind_param($stmt, "ssdii", $nazov, $popis, $cena, $mnozstvo, $_POST["edit_id"]);
+        try {
+            if(isset($_POST["edit_id"]) && !empty($_POST["edit_id"])) {
+                $produkt = Produkt::findById($_POST["edit_id"]);
+                
+                if($produkt) {
+                    $produkt->setNazov($nazov);
+                    $produkt->setPopis($popis);
+                    $produkt->setCena($cena);
+                    $produkt->setDostupneMnozstvo($mnozstvo);
+                    
+                    if(!empty($obrazok)) {
+                        $stary_obrazok = $produkt->getObrazok();
+                        if(!empty($stary_obrazok)) {
+                            $stary_subor = "../images/products/" . $stary_obrazok;
+                            if(file_exists($stary_subor)) {
+                                unlink($stary_subor);
+                            }
+                        }
+                        $produkt->setObrazok($obrazok);
+                    }
+
+                    if($produkt->save()) {
+                        header("location: produkty.php?status=success");
+                        exit;
+                    } else {
+                        echo "Ups! Niečo sa pokazilo pri aktualizácii produktu. Skúste to neskôr.";
+                    }
+                } else {
+                    echo "Produkt s daným ID nebol nájdený.";
+                }
+            }
+            else {
+                $produkt = new Produkt();
+                $produkt->setNazov($nazov);
+                $produkt->setPopis($popis);
+                $produkt->setCena($cena);
+                $produkt->setDostupneMnozstvo($mnozstvo);
+                
+                if(!empty($obrazok)) {
+                    $produkt->setObrazok($obrazok);
+                }
+                
+                if($produkt->save()) {
+                    header("location: produkty.php?status=success");
+                    exit;
+                } else {
+                    echo "Ups! Niečo sa pokazilo pri pridávaní produktu. Skúste to neskôr.";
+                }
+            }
+        } catch(Exception $e) {
+            echo "Ups! Nastala chyba: " . $e->getMessage();
+            
+            if(!empty($new_filename)) {
+                $cielovy_subor = "../images/products/" . $new_filename;
+                if(file_exists($cielovy_subor)) {
+                    unlink($cielovy_subor);
+                }
             }
         }
-        // Pridanie nového produktu
-        else {
-            $sql = "INSERT INTO produkty (nazov, popis, cena, dostupne_mnozstvo, obrazok) VALUES (?, ?, ?, ?, ?)";
-            $stmt = mysqli_prepare($conn, $sql);
-            mysqli_stmt_bind_param($stmt, "ssdis", $nazov, $popis, $cena, $mnozstvo, $obrazok);
-        }
-        
-        if(mysqli_stmt_execute($stmt)) {
-            header("location: produkty.php?status=success");
-            exit;
-        } else {
-            echo "Ups! Niečo sa pokazilo. Skúste to neskôr.";
-        }
-        
-        mysqli_stmt_close($stmt);
     }
 }
 
-// Načítanie údajov produktu na úpravu
 if(isset($_GET["edit"]) && !empty($_GET["edit"])) {
-    $sql = "SELECT * FROM produkty WHERE produkt_id = ?";
-    
-    if($stmt = mysqli_prepare($conn, $sql)) {
-        mysqli_stmt_bind_param($stmt, "i", $_GET["edit"]);
+    try {
+        $produkt = Produkt::findById($_GET["edit"]);
         
-        if(mysqli_stmt_execute($stmt)) {
-            $result = mysqli_stmt_get_result($stmt);
-            
-            if(mysqli_num_rows($result) == 1) {
-                $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
-                $edit_id = $row["produkt_id"];
-                $nazov = $row["nazov"];
-                $popis = $row["popis"];
-                $cena = $row["cena"];
-                $mnozstvo = $row["dostupne_mnozstvo"];
-                $obrazok = $row["obrazok"];
-            } else {
-                header("location: produkty.php");
-                exit;
-            }
+        if($produkt) {
+            $edit_id = $produkt->getId();
+            $nazov = $produkt->getNazov();
+            $popis = $produkt->getPopis();
+            $cena = $produkt->getCena();
+            $mnozstvo = $produkt->getDostupneMnozstvo();
+            $obrazok = $produkt->getObrazok();
         } else {
-            echo "Ups! Niečo sa pokazilo. Skúste to neskôr.";
+            header("location: produkty.php");
+            exit;
         }
-        
-        mysqli_stmt_close($stmt);
+    } catch(Exception $e) {
+        echo "Ups! Nastala chyba: " . $e->getMessage();
     }
+}
+
+try {
+    $produkty = Produkt::getAll();
+} catch(Exception $e) {
+    $produkty = [];
+    echo "Ups! Nastala chyba pri načítaní produktov: " . $e->getMessage();
 }
 ?>
 
@@ -216,27 +249,24 @@ if(isset($_GET["edit"]) && !empty($_GET["edit"])) {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <?php
-                                                    $sql = "SELECT * FROM produkty ORDER BY produkt_id DESC";
-                                                    $result = mysqli_query($conn, $sql);
-                                                    
-                                                    if(mysqli_num_rows($result) > 0) {
-                                                        while($row = mysqli_fetch_assoc($result)) {
+                                                    <?php   
+                                                    if(count($produkty) > 0) {
+                                                        foreach($produkty as $produkt) {
                                                             echo "<tr>";
-                                                            echo "<td>".$row['produkt_id']."</td>";
+                                                            echo "<td>".$produkt->getId()."</td>";
                                                             echo "<td>";
-                                                            if(!empty($row['obrazok'])) {
-                                                                echo '<img src="../images/products/'.$row['obrazok'].'" width="50" alt="'.$row['nazov'].'">';
+                                                            if(!empty($produkt->getObrazok())) {
+                                                                echo '<img src="../images/products/'.$produkt->getObrazok().'" width="50" alt="'.$produkt->getNazov().'">';
                                                             } else {
                                                                 echo '<img src="../images/products/default.png" width="50" alt="Default">';
                                                             }
                                                             echo "</td>";
-                                                            echo "<td>".$row['nazov']."</td>";
-                                                            echo "<td>".number_format($row['cena'], 2, ',', ' ')." €</td>";
-                                                            echo "<td>".$row['dostupne_mnozstvo']."</td>";
+                                                            echo "<td>".$produkt->getNazov()."</td>";
+                                                            echo "<td>".number_format($produkt->getCena(), 2, ',', ' ')." €</td>";
+                                                            echo "<td>".$produkt->getDostupneMnozstvo()."</td>";
                                                             echo "<td>
-                                                                    <a href='produkty.php?edit=".$row['produkt_id']."' class='btn btn-sm btn-primary'><i class='bi bi-pencil'></i></a>
-                                                                    <a href='produkty.php?delete=".$row['produkt_id']."' class='btn btn-sm btn-danger' onclick='return confirm(\"Naozaj chcete odstrániť tento produkt?\")'><i class='bi bi-trash'></i></a>
+                                                                    <a href='produkty.php?edit=".$produkt->getId()."' class='btn btn-sm btn-primary'><i class='bi bi-pencil'></i></a>
+                                                                    <a href='produkty.php?delete=".$produkt->getId()."' class='btn btn-sm btn-danger' onclick='return confirm(\"Naozaj chcete odstrániť tento produkt?\")'><i class='bi bi-trash'></i></a>
                                                                 </td>";
                                                             echo "</tr>";
                                                         }

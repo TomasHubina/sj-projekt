@@ -88,6 +88,30 @@ class Objednavka {
         
         return $data ? new Objednavka($data) : null;
     }
+
+    public static function findByStav($stav) {
+        $db = Database::getInstance();
+        $data = $db->fetchAll("SELECT * FROM objednavky WHERE stav = ?", [$stav]);
+        
+        $objednavky = [];
+        foreach ($data as $row) {
+            $objednavky[] = new Objednavka($row);
+        }
+        
+        return $objednavky;
+    }
+
+    public static function countByStav() {
+        $db = Database::getInstance();
+        $data = $db->fetchAll("SELECT stav, COUNT(*) as pocet FROM objednavky GROUP BY stav");
+        
+        $stavy_pocty = [];
+        foreach ($data as $row) {
+            $stavy_pocty[$row['stav']] = $row['pocet'];
+        }
+        
+        return $stavy_pocty;
+    }
     
     // Získanie objednávok používateľa
     public static function findByUserId($userId) {
@@ -108,7 +132,6 @@ class Objednavka {
     // Uloženie objednávky
     public function save() {
         if ($this->objednavka_id) {
-            // Aktualizácia existujúcej objednávky
             return $this->db->query(
                 "UPDATE objednavky SET 
                     pouzivatel_id = ?, meno = ?, priezvisko = ?, email = ?, 
@@ -123,7 +146,6 @@ class Objednavka {
                 ]
             );
         } else {
-            // Vytvorenie novej objednávky
             $this->db->query(
                 "INSERT INTO objednavky (
                     pouzivatel_id, meno, priezvisko, email, 
@@ -154,7 +176,6 @@ class Objednavka {
         return $objednavky;
     }
     
-    // Získanie položiek objednávky
     public function getPolozky() {
         if (empty($this->polozky) && $this->objednavka_id) {
             $data = $this->db->fetchAll(
@@ -173,7 +194,6 @@ class Objednavka {
         return $this->polozky;
     }
     
-    // Pridanie položky do objednávky
     public function pridatPolozku($produkt_id, $mnozstvo, $cena_za_kus) {
         if (!$this->objednavka_id) {
             throw new Exception("Objednávka musí byť najprv uložená pred pridaním položiek");
@@ -187,14 +207,12 @@ class Objednavka {
             [$this->objednavka_id, $produkt_id, $mnozstvo, $cena_za_kus, $celkova_suma_polozky]
         );
         
-        // Aktualizácia celkovej sumy objednávky
         $this->celkova_suma += $celkova_suma_polozky;
         $this->db->query(
             "UPDATE objednavky SET celkova_suma = ? WHERE objednavka_id = ?",
             [$this->celkova_suma, $this->objednavka_id]
         );
         
-        // Aktualizácia dostupného množstva produktu
         $this->db->query(
             "UPDATE produkty SET dostupne_mnozstvo = dostupne_mnozstvo - ? WHERE produkt_id = ?",
             [$mnozstvo, $produkt_id]
@@ -203,7 +221,6 @@ class Objednavka {
         return true;
     }
     
-    // Zmena stavu objednávky
     public function zmenitStav($novy_stav) {
         if ($this->objednavka_id) {
             $this->stav = $novy_stav;
@@ -215,7 +232,6 @@ class Objednavka {
         return false;
     }
     
-    // Získanie používateľa objednávky
     public function getPouzivatel() {
         if ($this->pouzivatel_id) {
             return Pouzivatel::findById($this->pouzivatel_id);
@@ -223,12 +239,9 @@ class Objednavka {
         return null;
     }
     
-    // Vymazanie objednávky
     public function delete() {
         if ($this->objednavka_id) {
-            // Najprv vymazanie položiek objednávky
             $this->db->query("DELETE FROM objednavka_produkty WHERE objednavka_id = ?", [$this->objednavka_id]);
-            // Potom vymazanie samotnej objednávky
             return $this->db->query("DELETE FROM objednavky WHERE objednavka_id = ?", [$this->objednavka_id]);
         }
         return false;

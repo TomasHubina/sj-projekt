@@ -6,7 +6,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     exit;
 }
 
-if(!isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] !== 1){
+if(!isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] != 1){
     header("location: ../index.php");
     exit;
 }
@@ -14,26 +14,24 @@ if(!isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] !== 1){
 require_once "../db/config.php";
 require_once "../functions/admin_css.php";
 require_once "../functions/admin_parts.php";
+require_once "../db/model/Objednavka.php";
+require_once "../db/model/Produkt.php";
+require_once "../db/model/Pouzivatel.php";
+require_once "../db/model/ObjednavkaPolozka.php";
 
-// Získanie počtu objednávok
-$sql = "SELECT COUNT(*) as pocet FROM objednavky";
-$result = mysqli_query($conn, $sql);
-$objednavky = mysqli_fetch_assoc($result)['pocet'];
+$objednavky_list = Objednavka::getAll();
+$objednavky = count($objednavky_list);
 
-// Získanie počtu produktov
-$sql = "SELECT COUNT(*) as pocet FROM produkty";
-$result = mysqli_query($conn, $sql);
-$produkty = mysqli_fetch_assoc($result)['pocet'];
+$produkty_list = Produkt::getAll();
+$produkty = count($produkty_list);
 
-// Získanie celkového obratu
-$sql = "SELECT SUM(celkova_suma) as obrat FROM objednavky";
-$result = mysqli_query($conn, $sql);
-$obrat = mysqli_fetch_assoc($result)['obrat'] ?: 0;
+$obrat = 0;
+foreach ($objednavky_list as $objednavka) {
+    $obrat += $objednavka->getCelkovaSuma();
+}
 
-// Získanie počtu používateľov
-$sql = "SELECT COUNT(*) as pocet FROM pouzivatelia";
-$result = mysqli_query($conn, $sql);
-$pouzivatelia = mysqli_fetch_assoc($result)['pocet'];
+$pouzivatelia_list = Pouzivatel::getAll();
+$pouzivatelia = count($pouzivatelia_list);
 ?>
 
 <!DOCTYPE html>
@@ -148,25 +146,28 @@ $pouzivatelia = mysqli_fetch_assoc($result)['pocet'];
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                    $sql = "SELECT o.*, p.meno FROM objednavky o
-                                                            JOIN pouzivatelia p ON o.objednavka_id = p.id
-                                                            ORDER BY o.datum_vytvorenia DESC LIMIT 5";
-                                                    $result = mysqli_query($conn, $sql);
+                                                    usort($objednavky_list, function($a, $b) {
+                                                        return strtotime($b->getDatumVytvorenia()) - strtotime($a->getDatumVytvorenia());
+                                                    });
                                                     
-                                                    if(mysqli_num_rows($result) > 0) {
-                                                        while($row = mysqli_fetch_assoc($result)) {
+                                                    $recent_objednavky = array_slice($objednavky_list, 0, 5);
+                                                    
+                                                    if(count($recent_objednavky) > 0) {
+                                                        foreach($recent_objednavky as $objednavka) {
+                                                            $pouzivatel = $objednavka->getPouzivatel();
+
                                                             echo "<tr>";
-                                                            echo "<td>".$row['objednavka_id']."</td>";
-                                                            echo "<td>".$row['meno']."</td>";
-                                                            echo "<td>".date('d.m.Y', strtotime($row['datum_vytvorenia']))."</td>";
-                                                            echo "<td>".number_format($row['celkova_suma'], 2, ',', ' ')." €</td>";
+                                                            echo "<td>".$objednavka->getId()."</td>";
+                                                            echo "<td>".$objednavka->getMeno()."</td>";
+                                                            echo "<td>".date('d.m.Y', strtotime($objednavka->getDatumVytvorenia()))."</td>";
+                                                            echo "<td>".number_format($objednavka->getCelkovaSuma(), 2, ',', ' ')." €</td>";
                                                             
                                                             $stav_trieda = "secondary";
-                                                            if($row['stav'] == 'vybavená') $stav_trieda = "success";
-                                                            else if($row['stav'] == 'zrušená') $stav_trieda = "danger";
-                                                            else if($row['stav'] == 'spracováva sa') $stav_trieda = "warning";
+                                                            if($objednavka->getStav() == 'vybavená') $stav_trieda = "success";
+                                                            else if($objednavka->getStav() == 'zrušená') $stav_trieda = "danger";
+                                                            else if($objednavka->getStav() == 'spracováva sa') $stav_trieda = "warning";
                                                             
-                                                            echo "<td><span class='badge bg-".$stav_trieda."'>".$row['stav']."</span></td>";
+                                                            echo "<td><span class='badge bg-".$stav_trieda."'>".$objednavka->getStav()."</span></td>";
                                                             echo "</tr>";
                                                         }
                                                     } else {
@@ -202,35 +203,54 @@ $pouzivatelia = mysqli_fetch_assoc($result)['pocet'];
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                    $sql = "SELECT p.*, COUNT(op.id) as predane FROM produkty p
-                                                            LEFT JOIN objednavka_produkty op ON p.produkt_id = op.produkt_id
-                                                            GROUP BY p.produkt_id
-                                                            ORDER BY predane DESC
-                                                            LIMIT 5";
-                                                    $result = mysqli_query($conn, $sql);
+                                                    $predane_produkty = [];
                                                     
-                                                    if(mysqli_num_rows($result) > 0) {
-                                                        while($row = mysqli_fetch_assoc($result)) {
-                                                            echo "<tr>";
-                                                            echo "<td>".$row['nazov']."</td>";
-                                                            echo "<td>".number_format($row['cena'], 2, ',', ' ')." €</td>";
-                                                            echo "<td>".$row['predane']."</td>";
+                                                    foreach($objednavky_list as $objednavka) {
+                                                        $polozky = $objednavka->getPolozky();
+                                                        foreach($polozky as $polozka) {
+                                                            $produkt_id = $polozka->getProduktId();
+                                                            $mnozstvo = $polozka->getMnozstvo();
                                                             
-                                                            $sklad_trieda = "success";
-                                                            if(isset($row['dostupne_mnozstvo'])) {
-                                                                if($row['dostupne_mnozstvo'] < 5) $sklad_trieda = "warning";
-                                                                if($row['dostupne_mnozstvo'] <= 0) $sklad_trieda = "danger";
-                                                                echo "<td><span class='badge bg-".$sklad_trieda."'>".$row['dostupne_mnozstvo']."</span></td>";
-                                                            } else {
-                                                                echo "<td><span class='badge bg-secondary'>Nedostupné</span></td>";
+                                                            if(!isset($predane_produkty[$produkt_id])) {
+                                                                $predane_produkty[$produkt_id] = [
+                                                                    'produkt' => Produkt::findById($produkt_id),
+                                                                    'predane' => 0
+                                                                ];
                                                             }
                                                             
-                                                            echo "</tr>";
+                                                            $predane_produkty[$produkt_id]['predane'] += $mnozstvo;
                                                         }
-                                                    } else {
-                                                        echo "<tr><td colspan='4' class='text-center'>Žiadne produkty</td></tr>";
                                                     }
-                                                    ?>
+                                                    
+                                                    uasort($predane_produkty, function($a, $b) {
+                                                        return $b['predane'] - $a['predane'];
+                                                    });
+                                                    
+                                                    $najpredavanejsie = array_slice($predane_produkty, 0, 5);
+                                                    
+                                                    if(count($najpredavanejsie) > 0) {
+                                                        foreach($najpredavanejsie as $data) {
+                                                            $produkt = $data['produkt'];
+                                                            $predane = $data['predane'];
+
+                                                            echo "<tr>";
+                                                            echo "<td>".$produkt->getNazov()."</td>";
+                                                            echo "<td>".number_format($produkt->getCena(), 2, ',', ' ')." €</td>";
+                                                            echo "<td>".$predane."</td>";
+                                                            
+                                                            $sklad_trieda = "success";
+                                                            $mnozstvo = $produkt->getDostupneMnozstvo();
+
+                                                                if($mnozstvo < 5) $sklad_trieda = "warning";
+                                                                if($mnozstvo <= 0) $sklad_trieda = "danger";
+
+                                                                echo "<td><span class='badge bg-".$sklad_trieda."'>".$mnozstvo."</span></td>";
+                                                                echo "</tr>";
+                                                            }
+                                                        } else {
+                                                            echo "<tr><td colspan='4' class='text-center'>Žiadne produkty</td></tr>";
+                                                        }
+                                                        ?>
                                                 </tbody>
                                             </table>
                                         </div>

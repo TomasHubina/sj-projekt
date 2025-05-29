@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="sk">
 <?php
+    require_once "db/config.php";
+    require_once "db/model/Produkt.php";
+
     $file_path = "parts/head.php";
 if(!require($file_path)) {
     echo"Failed to include $file_path";
@@ -158,17 +161,22 @@ if(!require($file_path)) {
             </div>
             
             <?php
-            require_once "db/config.php";
+            $all_products = Produkt::getAll();
             
-            $sql = "SELECT * FROM produkty WHERE dostupne_mnozstvo > 0 ORDER BY produkt_id DESC LIMIT 10";
-            $result = mysqli_query($conn, $sql);
+            // Filtrovanie produktov (len dostupné)
+            $products = array_filter($all_products, function($product) {
+                return $product->getDostupneMnozstvo() > 0;
+            });
             
-            if(mysqli_num_rows($result) > 0) {
-                $products = array();
-                while($row = mysqli_fetch_assoc($result)) {
-                    $products[] = $row;
-                }
-                
+            // Zoradenie produktov podľa ID zostupne (najnovšie najprv)
+            usort($products, function($a, $b) {
+                return $b->getId() - $a->getId();
+            });
+            
+            // Obmedzenie na 10 produktov
+            $products = array_slice($products, 0, 10);
+
+            if(count($products) > 0) {
                 $half = ceil(count($products) / 2);
                 $firstHalf = array_slice($products, 0, $half);
                 $secondHalf = array_slice($products, $half);
@@ -182,10 +190,10 @@ if(!require($file_path)) {
                 <div class="menu-block bg-dark mb-4 rounded p-3" style="height: 250px; overflow: hidden;">
                     <div class="d-flex h-100">
                         <div class="product-image me-4 align-self-center" style="min-width: 100px;">
-                            <?php if(!empty($product['obrazok'])): ?>
-                                <img src="images/products/<?php echo htmlspecialchars($product['obrazok']); ?>" 
+                            <?php if(!empty($product->getObrazok())): ?>
+                                <img src="images/products/<?php echo htmlspecialchars($product->getObrazok()); ?>" 
                                     class="img-fluid rounded" style="width: 180px; height: 180px; object-fit: cover;" 
-                                    alt="<?php echo htmlspecialchars($product['nazov']); ?>">
+                                    alt="<?php echo htmlspecialchars($product->getNazov()); ?>">
                             <?php else: ?>
                                 <div class="bg-secondary rounded d-flex align-items-center justify-content-center" 
                                     style="width: 180px; height: 180px;">
@@ -197,24 +205,24 @@ if(!require($file_path)) {
                         <div class="product-info flex-grow-1 d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h5 class="text-white mb-0">
-                                    <?php echo htmlspecialchars($product['nazov']); ?>
-                                    <?php if($product['dostupne_mnozstvo'] <= 5): ?>
+                                    <?php echo htmlspecialchars($product->getNazov()); ?>
+                                    <?php if($product->getDostupneMnozstvo() <= 5): ?>
                                     <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">Posledné kusy</span>
                                     <?php endif; ?>
                                 </h5>
-                                <strong class="text-white"><?php echo number_format($product['cena'], 2, ',', ' '); ?> €</strong>
+                                <strong class="text-white"><?php echo number_format($product->getCena(), 2, ',', ' '); ?> €</strong>
                             </div>
                 
                             <p class="text-light small mb-2" style="max-height: 80px; overflow-y: auto;">
                                 <?php 
-                                $popis = htmlspecialchars($product['popis']);
+                                $popis = htmlspecialchars($product->getPopis());
                                 echo (strlen($popis) > 200) ? substr($popis, 0, 200) . '...' : $popis;
                                 ?>
                             </p>
                 
                             <div class="mt-auto">
-                                <a href="produkt.php?id=<?php echo $product['produkt_id']; ?>" class="btn btn-sm custom-btn">Detail</a>
-                                <a href="kosik.php?action=add&id=<?php echo $product['produkt_id']; ?>&mnozstvo=1" class="btn btn-sm custom-btn custom-border-btn ms-2">Do košíka</a>
+                                <a href="produkt.php?id=<?php echo $product->getId(); ?>" class="btn btn-sm custom-btn">Detail</a>
+                                <a href="kosik.php?action=add&id=<?php echo $product->getId(); ?>&mnozstvo=1" class="btn btn-sm custom-btn custom-border-btn ms-2">Do košíka</a>
                             </div>
                         </div>
                     </div>
@@ -227,10 +235,10 @@ if(!require($file_path)) {
                 <div class="menu-block bg-dark mb-4 rounded p-3" style="height: 250px; overflow: hidden;">
                     <div class="d-flex h-100">
                         <div class="product-image me-4 align-self-center" style="min-width: 100px;">
-                            <?php if(!empty($product['obrazok'])): ?>
-                                <img src="images/products/<?php echo htmlspecialchars($product['obrazok']); ?>" 
+                            <?php if(!empty($product->getObrazok())): ?>
+                                <img src="images/products/<?php echo htmlspecialchars($product->getObrazok()); ?>" 
                                     class="img-fluid rounded" style="width: 180px; height: 180px; object-fit: cover;" 
-                                    alt="<?php echo htmlspecialchars($product['nazov']); ?>">
+                                    alt="<?php echo htmlspecialchars($product->getNazov()); ?>">
                             <?php else: ?>
                                 <div class="bg-secondary rounded d-flex align-items-center justify-content-center" 
                                     style="width: 180px; height: 180px;">
@@ -242,24 +250,24 @@ if(!require($file_path)) {
                         <div class="product-info flex-grow-1 d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h5 class="text-white mb-0">
-                                    <?php echo htmlspecialchars($product['nazov']); ?>
-                                    <?php if($product['dostupne_mnozstvo'] <= 5): ?>
+                                    <?php echo htmlspecialchars($product->getNazov()); ?>
+                                    <?php if($product->getDostupneMnozstvo() <= 5): ?>
                                     <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">Posledné kusy</span>
                                     <?php endif; ?>
                                 </h5>
-                                <strong class="text-white"><?php echo number_format($product['cena'], 2, ',', ' '); ?> €</strong>
+                                <strong class="text-white"><?php echo number_format($product->getCena(), 2, ',', ' '); ?> €</strong>
                             </div>
                 
                             <p class="text-light small mb-2" style="max-height: 80px; overflow-y: auto;">
                                 <?php 
-                                $popis = htmlspecialchars($product['popis']);
+                                $popis = htmlspecialchars($product->getPopis());
                                 echo (strlen($popis) > 200) ? substr($popis, 0, 200) . '...' : $popis;
                                 ?>
                             </p>
                 
                             <div class="mt-auto">
-                                <a href="produkt.php?id=<?php echo $product['produkt_id']; ?>" class="btn btn-sm custom-btn">Detail</a>
-                                <a href="kosik.php?action=add&id=<?php echo $product['produkt_id']; ?>&mnozstvo=1" class="btn btn-sm custom-btn custom-border-btn ms-2">Do košíka</a>
+                                <a href="produkt.php?id=<?php echo $product->getId(); ?>" class="btn btn-sm custom-btn">Detail</a>
+                                <a href="kosik.php?action=add&id=<?php echo $product->getId(); ?>&mnozstvo=1" class="btn btn-sm custom-btn custom-border-btn ms-2">Do košíka</a>
                             </div>
                         </div>
                     </div>
@@ -280,26 +288,6 @@ if(!require($file_path)) {
         </div>
     </div>
 </section>
-
-                <!-- Nová sekcia pre objednávku kávy 
-                <section class="about-section section-padding" id="section_order">
-                    <div class="section-overlay"></div>
-                    <div class="container">
-                        <div class="row">   
-
-            <div class="col-lg-12 col-12">
-                <em class="text-white">Objednajte si</em>
-                <h2 class="text-white mb-4 pb-lg-2">Naša čerstvo upražená káva</h2>
-            </div>
-
-            <div class="col-12">
-                <a href="produkty.php" class="btn custom-btn custom-border-btn">Prehliadať našu ponuku</a>
-            </div>
-
-        </div>
-    </div>
-</section>-->
-
 
                 <section class="reviews-section section-padding section-bg" id="section_4">
                     <div class="container">

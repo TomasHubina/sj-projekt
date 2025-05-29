@@ -58,18 +58,15 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     
     if(empty($meno_err) && empty($priezvisko_err) && empty($email_err) && empty($heslo_err) && empty($heslo_potvrdenie_err)){         
             try {
-            // Vytvorenie nového používateľa pomocou OOP
             $novy_pouzivatel = new Pouzivatel();
             $novy_pouzivatel->setMeno($meno);
             $novy_pouzivatel->setPriezvisko($priezvisko);
             $novy_pouzivatel->setEmail($email);
-            $novy_pouzivatel->setPassword($heslo); // Táto metóda už zahŕňa password_hash()
+            $novy_pouzivatel->setPassword($heslo); 
             
-            // Uloženie používateľa do databázy
             $id = $novy_pouzivatel->save();
             
             if($id){
-                // Úspešná registrácia, presmerovanie na prihlásenie
                 header("location: prihlasenie.php");
                 exit;
             } else{

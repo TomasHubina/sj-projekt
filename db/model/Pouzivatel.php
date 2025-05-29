@@ -8,6 +8,7 @@ class Pouzivatel {
     private $email;
     private $heslo; 
     private $je_admin = 0;
+    private $datum_vytvorenia;
     
     private $db;
     
@@ -21,6 +22,7 @@ class Pouzivatel {
             $this->email = $data['email'] ?? '';
             $this->heslo = $data['heslo'] ?? '';
             $this->je_admin = $data['je_admin'] ?? 0;
+            $this->datum_vytvorenia = $data['datum_vytvorenia'] ?? null;
         }
     }
     
@@ -30,6 +32,7 @@ class Pouzivatel {
     public function getEmail() { return $this->email; }
     public function getPassword() { return $this->heslo; }
     public function isAdmin() { return $this->je_admin == 1; }
+    public function getDatum() { return $this->datum_vytvorenia; }
     
     public function setMeno($meno) { $this->meno = $meno; }
     public function setPriezvisko($priezvisko) { $this->priezvisko = $priezvisko; }
