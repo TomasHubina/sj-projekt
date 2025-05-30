@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once "db/config.php";
+require_once "db/model/Produkt.php";
 
 if(!isset($_GET["id"]) || empty($_GET["id"])) {
     header("location: produkty.php");
@@ -8,71 +9,23 @@ if(!isset($_GET["id"]) || empty($_GET["id"])) {
 }
 
 $id = $_GET["id"];
-$sql = "SELECT * FROM produkty WHERE produkt_id = ?";
 
-if($stmt = mysqli_prepare($conn, $sql)) {
-    mysqli_stmt_bind_param($stmt, "i", $id);
+try {
+    $produkt = Produkt::findById($id);
     
-    if(mysqli_stmt_execute($stmt)) {
-        $result = mysqli_stmt_get_result($stmt);
-        
-        if(mysqli_num_rows($result) == 1) {
-            $produkt = mysqli_fetch_assoc($result);
-        } else {
-            header("location: produkty.php");
-            exit;
-        }
-    } else {
-        echo "Ups! Niečo sa pokazilo. Skúste to neskôr.";
+    if(!$produkt) {
+        header("location: produkty.php");
         exit;
     }
     
-    mysqli_stmt_close($stmt);
-} else {
-    echo "Ups! Niečo sa pokazilo. Skúste to neskôr.";
+    $suvisiace_produkty = Produkt::getRandomProducts($id, 3);
+    
+} catch (Exception $e) {
+    echo "Niečo sa pokazilo: " . $e->getMessage();
     exit;
 }
 
-$suvisiace_produkty = array();
-
-/*if(isset($produkt["kategoria"]) && !empty($produkt["kategoria"])) {
-    $sql_suvisiace = "SELECT * FROM produkty WHERE kategoria = ? AND produkt_id != ? LIMIT 3";
-    
-    if($stmt = mysqli_prepare($conn, $sql_suvisiace)) {
-        mysqli_stmt_bind_param($stmt, "si", $produkt["kategoria"], $id);
-        
-        if(mysqli_stmt_execute($stmt)) {
-            $result = mysqli_stmt_get_result($stmt);
-            
-            while($row = mysqli_fetch_assoc($result)) {
-                $suvisiace_produkty[] = $row;
-            }
-        }
-        
-        mysqli_stmt_close($stmt);
-    }
-} else {*/
-    $sql_suvisiace = "SELECT * FROM produkty WHERE produkt_id != ? ORDER BY RAND() LIMIT 3";
-    
-    if($stmt = mysqli_prepare($conn, $sql_suvisiace)) {
-        mysqli_stmt_bind_param($stmt, "i", $id);
-        
-        if(mysqli_stmt_execute($stmt)) {
-            $result = mysqli_stmt_get_result($stmt);
-            
-            while($row = mysqli_fetch_assoc($result)) {
-                $suvisiace_produkty[] = $row;
-            }
-        }
-        
-        mysqli_stmt_close($stmt);
-    }
-//}
-
-mysqli_close($conn);
-
-$dostupne_mnozstvo = isset($produkt["dostupne_mnozstvo"]) ? $produkt["dostupne_mnozstvo"] : 
-                    (isset($produkt["mnozstvo_na_sklade"]) ? $produkt["mnozstvo_na_sklade"] : 0);
+$dostupne_mnozstvo = $produkt->getDostupneMnozstvo();
 ?>
 
 <!DOCTYPE html>
@@ -91,17 +44,17 @@ $dostupne_mnozstvo = isset($produkt["dostupne_mnozstvo"]) ? $produkt["dostupne_m
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="index.php" class="text-white">Domov</a></li>
                                 <li class="breadcrumb-item"><a href="produkty.php" class="text-white">Produkty</a></li>
-                                <li class="breadcrumb-item active text-white" aria-current="page"><?php echo htmlspecialchars($produkt["nazov"]); ?></li>
+                                <li class="breadcrumb-item active text-white" aria-current="page"><?php echo htmlspecialchars($produkt->getNazov()); ?></li>
                             </ol>
                         </nav>
                     </div>
                     
                     <div class="col-lg-6 col-12">
                         <div class="bg-dark p-4 rounded">
-                            <?php if(!empty($produkt["obrazok"])): ?>
-                                <img src="images/products/<?php echo htmlspecialchars($produkt["obrazok"]); ?>" 
+                            <?php if(!empty($produkt->getObrazok())): ?>
+                                <img src="images/products/<?php echo htmlspecialchars($produkt->getObrazok()); ?>" 
                                      class="img-fluid product-image" 
-                                     alt="<?php echo htmlspecialchars($produkt["nazov"]); ?>">
+                                     alt="<?php echo htmlspecialchars($produkt->getNazov()); ?>">
                             <?php else: ?>
                                 <div class="text-center py-5">
                                     <i class="bi bi-cup-hot text-white" style="font-size: 8rem;"></i>
@@ -112,18 +65,14 @@ $dostupne_mnozstvo = isset($produkt["dostupne_mnozstvo"]) ? $produkt["dostupne_m
                     
                     <div class="col-lg-6 col-12 mt-4 mt-lg-0">
                         <div class="bg-dark p-4 rounded">
-                            <h2 class="text-white mb-2"><?php echo htmlspecialchars($produkt["nazov"]); ?></h2>
-                            
-                            <!--<?php // if(isset($produkt["kategoria"]) && !empty($produkt["kategoria"])): ?>
-                                <p class="text-light mb-4">Kategória: <?php //echo htmlspecialchars($produkt["kategoria"]); ?></p>
-                            <?php //endif; ?>-->
+                            <h2 class="text-white mb-2"><?php echo htmlspecialchars($produkt->getNazov()); ?></h2>
                             
                             <div class="price-tag bg-dark shadow-lg d-inline-block mb-4">
-                                <h3 class="text-white mb-0"><?php echo number_format($produkt["cena"], 2, ',', ' '); ?> €</h3>
+                                <h3 class="text-white mb-0"><?php echo number_format($produkt->getCena(), 2, ',', ' '); ?> €</h3>
                             </div>
                             
                             <div class="mb-4">
-                                <p class="text-white"><?php echo nl2br(htmlspecialchars($produkt["popis"])); ?></p>
+                                <p class="text-white"><?php echo nl2br(htmlspecialchars($produkt->getPopis())); ?></p>
                             </div>
                             
                             <div class="mb-4">
@@ -142,7 +91,7 @@ $dostupne_mnozstvo = isset($produkt["dostupne_mnozstvo"]) ? $produkt["dostupne_m
                             <?php if($dostupne_mnozstvo > 0): ?>
                                 <form action="kosik.php" method="get" class="mb-4">
                                     <input type="hidden" name="action" value="add">
-                                    <input type="hidden" name="id" value="<?php echo $produkt["produkt_id"]; ?>">
+                                    <input type="hidden" name="id" value="<?php echo $produkt->getId(); ?>">
                                     
                                     <div class="row g-3 align-items-center mb-4">
                                         <div class="col-auto">
@@ -186,10 +135,10 @@ $dostupne_mnozstvo = isset($produkt["dostupne_mnozstvo"]) ? $produkt["dostupne_m
                     <div class="col-lg-4 col-md-6 col-12 mb-4">
                         <div class="menu-thumb">
                             <div class="menu-image-wrap">
-                                <?php if(!empty($sp['obrazok'])): ?>
-                                    <img src="images/products/<?php echo htmlspecialchars($sp['obrazok']); ?>" 
+                                <?php if(!empty($sp->getObrazok())): ?>
+                                    <img src="images/products/<?php echo htmlspecialchars($sp->getObrazok()); ?>" 
                                          class="img-fluid menu-image" 
-                                         alt="<?php echo htmlspecialchars($sp['nazov']); ?>">
+                                         alt="<?php echo htmlspecialchars($sp->getNazov()); ?>">
                                 <?php else: ?>
                                     <div class="text-center py-5 bg-dark">
                                         <i class="bi bi-cup-hot text-white" style="font-size: 3rem;"></i>
@@ -198,14 +147,14 @@ $dostupne_mnozstvo = isset($produkt["dostupne_mnozstvo"]) ? $produkt["dostupne_m
                             </div>
 
                             <div class="menu-info d-flex flex-wrap align-items-center">
-                                <h4 class="text-white mb-0"><?php echo htmlspecialchars($sp['nazov']); ?></h4>
+                                <h4 class="text-white mb-0"><?php echo htmlspecialchars($sp->getNazov()); ?></h4>
 
                                 <span class="price-tag bg-dark shadow-lg ms-4 text-white">
-                                    <small><?php echo number_format($sp['cena'], 2, ',', ' '); ?> €</small>
+                                    <small><?php echo number_format($sp->getCena(), 2, ',', ' '); ?> €</small>
                                 </span>
 
                                 <div class="mt-2 w-100">
-                                    <a href="produkt.php?id=<?php echo $sp['produkt_id']; ?>" class="btn custom-btn mt-2">
+                                    <a href="produkt.php?id=<?php echo $sp->getId(); ?>" class="btn custom-btn mt-2">
                                         Zobraziť detail
                                     </a>
                                 </div>

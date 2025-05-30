@@ -163,17 +163,14 @@ if(!require($file_path)) {
             <?php
             $all_products = Produkt::getAll();
             
-            // Filtrovanie produktov (len dostupné)
             $products = array_filter($all_products, function($product) {
                 return $product->getDostupneMnozstvo() > 0;
             });
             
-            // Zoradenie produktov podľa ID zostupne (najnovšie najprv)
             usort($products, function($a, $b) {
                 return $b->getId() - $a->getId();
             });
             
-            // Obmedzenie na 10 produktov
             $products = array_slice($products, 0, 10);
 
             if(count($products) > 0) {

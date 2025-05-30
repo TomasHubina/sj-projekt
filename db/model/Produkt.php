@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../Database.php';
+require_once __DIR__ . '/../database.php';
 
 class Produkt {
     private $produkt_id;
@@ -71,6 +71,21 @@ class Produkt {
         
         return $produkty;
     }
+
+    public static function getRandomProducts($excludeId, $limit = 3) {
+    $db = Database::getInstance();
+    $data = $db->fetchAll(
+        "SELECT * FROM produkty WHERE produkt_id != ? ORDER BY RAND() LIMIT ?", 
+        [$excludeId, $limit]
+    );
+    
+    $produkty = [];
+    foreach ($data as $row) {
+        $produkty[] = new Produkt($row);
+    }
+    
+    return $produkty;
+}
     
     public function znizitMnozstvo($mnozstvo) {
         if ($this->dostupne_mnozstvo >= $mnozstvo) {

@@ -12,7 +12,7 @@ function admin_navbar() {
                         <a class="nav-link" href="../index.php" target="_blank">Zobraziť stránku</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="logout.php">Odhlásiť sa</a>
+                        <a class="nav-link" href="../autentification/odhlasenie.php">Odhlásiť sa</a>
                     </li>
                 </ul>
             </div>

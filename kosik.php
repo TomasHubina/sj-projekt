@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once "db/config.php";
+require_once "db/model/Produkt.php";
 
 if(!isset($_SESSION['kosik'])) {
     $_SESSION['kosik'] = array();
@@ -10,35 +11,28 @@ if(isset($_GET['action']) && $_GET['action'] == 'add' && isset($_GET['id'])) {
     $produkt_id = $_GET['id'];
     $mnozstvo = isset($_GET['mnozstvo']) ? (int)$_GET['mnozstvo'] : 1;
     
-    $sql = "SELECT * FROM produkty WHERE produkt_id = ?";
-    if($stmt = mysqli_prepare($conn, $sql)) {
-        mysqli_stmt_bind_param($stmt, "i", $produkt_id);
-        if(mysqli_stmt_execute($stmt)) {
-            $result = mysqli_stmt_get_result($stmt);
-            if($produkt = mysqli_fetch_assoc($result)) {
-                $dostupne_mnozstvo = isset($produkt['dostupne_mnozstvo']) ? $produkt['dostupne_mnozstvo'] : 0;
-                
-                if($dostupne_mnozstvo >= $mnozstvo) {
-                    if(isset($_SESSION['kosik'][$produkt_id])) {
-                        $_SESSION['kosik'][$produkt_id]['mnozstvo'] += $mnozstvo;
-                    } else {
-                        $_SESSION['kosik'][$produkt_id] = array(
-                            'id' => $produkt['produkt_id'], 
-                            'nazov' => $produkt['nazov'],
-                            'cena' => $produkt['cena'],
-                            'mnozstvo' => $mnozstvo,
-                            'obrazok' => $produkt['obrazok']
-                        );
-                    }
-                    header("Location: kosik.php?status=added");
-                    exit;
-                } else {
-                    header("Location: produkt.php?id=".$produkt_id."&error=stock");
-                    exit;
-                }
+    $produkt = Produkt::findById($produkt_id);
+    
+    if($produkt) {
+        $dostupne_mnozstvo = $produkt->getDostupneMnozstvo();
+        if($dostupne_mnozstvo >= $mnozstvo) {
+            if(isset($_SESSION['kosik'][$produkt_id])) {
+                $_SESSION['kosik'][$produkt_id]['mnozstvo'] += $mnozstvo;
+            } else {
+                $_SESSION['kosik'][$produkt_id] = array(
+                    'id' => $produkt->getId(), 
+                    'nazov' => $produkt->getNazov(),
+                    'cena' => $produkt->getCena(),
+                    'mnozstvo' => $mnozstvo,
+                    'obrazok' => $produkt->getObrazok()
+                );
             }
+            header("Location: kosik.php?status=added");
+            exit;
+        } else {
+            header("Location: produkt.php?id=".$produkt_id."&error=stock");
+            exit;
         }
-        mysqli_stmt_close($stmt);
     }
 }
 

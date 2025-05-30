@@ -1,12 +1,12 @@
 <?php
 session_start();
 require_once "db/config.php";
+require_once "db/model/Produkt.php";
 
-$sql = "SELECT * FROM produkty";
-$result = mysqli_query($conn, $sql);
-
-if (!$result) {
-    die("Chyba pri načítaní produktov: " . mysqli_error($conn));
+try {
+    $produkty = Produkt::getAll();
+} catch (Exception $e) {
+    die("Chyba pri načítaní produktov: " . $e->getMessage());
 }
 ?>
 
@@ -26,15 +26,15 @@ if (!$result) {
                         <h2 class="text-white mb-4">Čerstvo upražená káva</h2>
                     </div>
 
-                    <?php if(mysqli_num_rows($result) > 0): ?>
-                        <?php while($row = mysqli_fetch_assoc($result)): ?>
+                    <?php if(count($produkty) > 0): ?>
+                        <?php foreach($produkty as $produkt): ?>
                             <div class="col-lg-4 col-md-6 col-12 mb-4">
                                 <div class="menu-thumb">
                                     <div class="menu-image-wrap">
-                                        <?php if(!empty($row['obrazok'])): ?>
-                                            <img src="images/products/<?php echo htmlspecialchars($row['obrazok']); ?>" 
+                                        <?php if(!empty($produkt->getObrazok())): ?>
+                                            <img src="images/products/<?php echo htmlspecialchars($produkt->getObrazok()); ?>" 
                                                  class="img-fluid menu-image" 
-                                                 alt="<?php echo htmlspecialchars($row['nazov']); ?>">
+                                                 alt="<?php echo htmlspecialchars($produkt->getNazov()); ?>">
                                         <?php else: ?>
                                             <div class="text-center py-5 bg-dark">
                                                 <i class="bi bi-cup-hot text-white" style="font-size: 3rem;"></i>
@@ -43,22 +43,22 @@ if (!$result) {
                                     </div>
 
                                     <div class="menu-info d-flex flex-wrap align-items-center">
-                                        <h4 class="text-white mb-0"><?php echo htmlspecialchars($row['nazov']); ?></h4>
+                                        <h4 class="text-white mb-0"><?php echo htmlspecialchars($produkt->getNazov()); ?></h4>
 
                                         <span class="price-tag bg-dark shadow-lg ms-4 text-white">
-                                            <small><?php echo number_format($row['cena'], 2, ',', ' '); ?> €</small>
+                                            <small><?php echo number_format($produkt->getCena(), 2, ',', ' '); ?> €</small>
                                         </span>
 
                                         <div class="d-flex flex-wrap align-items-center w-100 mt-2">
-                                            <p class="text-white mb-0"><?php echo substr(htmlspecialchars($row['popis']), 0, 100); ?>...</p>
+                                            <p class="text-white mb-0"><?php echo substr(htmlspecialchars($produkt->getPopis()), 0, 100); ?>...</p>
 
                                             <div class="mt-3 w-100">
                                                 <?php 
-                                                echo '<a href="produkt.php?id=' . $row['produkt_id'] . '" class="btn custom-btn">Zobraziť detail</a>';
+                                                echo '<a href="produkt.php?id=' . $produkt->getId() . '" class="btn custom-btn">Zobraziť detail</a>';
                                                 
-                                                $dostupne = isset($row['dostupne_mnozstvo']) ? $row['dostupne_mnozstvo'] : 0;
+                                                $dostupne = $produkt->getDostupneMnozstvo();
                                                 if($dostupne > 0) {
-                                                    echo '<a href="kosik.php?action=add&id=' . $row['produkt_id'] . '&mnozstvo=1" class="btn custom-btn custom-border-btn ms-2">Do košíka</a>';
+                                                    echo '<a href="kosik.php?action=add&id=' . $produkt->getId() . '&mnozstvo=1" class="btn custom-btn custom-border-btn ms-2">Do košíka</a>';
                                                 } else {
                                                     echo '<button class="btn custom-btn bg-secondary ms-2" disabled>Nedostupné</button>';
                                                 }
@@ -68,7 +68,7 @@ if (!$result) {
                                     </div>
                                 </div>
                             </div>
-                        <?php endwhile; ?>
+                        <?php endforeach; ?>
                     <?php else: ?>
                         <div class="col-12">
                             <div class="alert alert-dark text-white">

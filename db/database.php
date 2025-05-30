@@ -2,7 +2,7 @@
 class Database {
     private static $instance = null;
     private $conn;
-    
+
     private function __construct() {
         try {
             require_once 'config.php';
@@ -21,6 +21,18 @@ class Database {
     
     public function getConnection() {
         return $this->conn;
+    }
+
+    public function beginTransaction() {
+    return $this->conn->beginTransaction();
+    }
+
+    public function commit() {
+    return $this->conn->commit();
+    }
+
+    public function rollback() {
+    return $this->conn->rollback();
     }
 
     public function query($sql, $params = []) {
@@ -54,6 +66,12 @@ class Database {
             priezvisko VARCHAR(100) NULL,
             email VARCHAR(100) NOT NULL UNIQUE,
             heslo VARCHAR(255) NOT NULL,
+            datum_vytvorenia TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            ulica VARCHAR(50) NULL,
+            cislo VARCHAR(10) NULL,
+            mesto VARCHAR(100) NULL,
+            psc VARCHAR(10) NULL,
+            telefon VARCHAR(20) NULL,
             je_admin TINYINT(1) NOT NULL DEFAULT 0
         )"); 
 

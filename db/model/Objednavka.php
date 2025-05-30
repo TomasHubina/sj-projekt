@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../Database.php';
+require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/ObjednavkaPolozka.php';
 require_once __DIR__ . '/Pouzivatel.php';
 
@@ -81,7 +81,6 @@ class Objednavka {
     public function setSposobDorucenia($dorucenie) { $this->sposob_dorucenia = $dorucenie; }
     public function setPoznamka($poznamka) { $this->poznamka = $poznamka; }
     
-    // Nájdenie objednávky podľa ID
     public static function findById($id) {
         $db = Database::getInstance();
         $data = $db->fetchOne("SELECT * FROM objednavky WHERE objednavka_id = ?", [$id]);
@@ -113,7 +112,6 @@ class Objednavka {
         return $stavy_pocty;
     }
     
-    // Získanie objednávok používateľa
     public static function findByUserId($userId) {
         $db = Database::getInstance();
         $data = $db->fetchAll(
@@ -129,7 +127,6 @@ class Objednavka {
         return $objednavky;
     }
     
-    // Uloženie objednávky
     public function save() {
         if ($this->objednavka_id) {
             return $this->db->query(
@@ -163,7 +160,6 @@ class Objednavka {
         }
     }
     
-    // Získanie všetkých objednávok
     public static function getAll() {
         $db = Database::getInstance();
         $data = $db->fetchAll("SELECT * FROM objednavky ORDER BY objednavka_id DESC");

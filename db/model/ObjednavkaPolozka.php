@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../Database.php';
+require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/Produkt.php';
 
 class ObjednavkaPolozka {
@@ -49,7 +49,7 @@ class ObjednavkaPolozka {
         $this->cena_za_kus = $cena; 
         $this->updateCelkovaSuma();
     }
-    
+
     private function updateCelkovaSuma() {
         $this->celkova_suma = $this->mnozstvo * $this->cena_za_kus;
     }
@@ -160,7 +160,7 @@ class ObjednavkaPolozka {
         return number_format($this->cena_za_kus, 2, ',', ' ') . ' €';
     }
     
-    public function getFormátovanaCelkovaSuma() {
+    public function getFormatovanaCelkovaSuma() {
         return number_format($this->celkova_suma, 2, ',', ' ') . ' €';
     }
 }

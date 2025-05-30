@@ -2,6 +2,9 @@
 session_start();
 
 require_once "db/config.php";
+require_once "db/model/Objednavka.php";
+require_once "db/model/ObjednavkaPolozka.php";
+require_once "db/model/Produkt.php";
 
 $ma_objednavku = isset($_SESSION['objednavka_id']) && !empty($_SESSION['objednavka_id']);
 $objednavka_id = $ma_objednavku ? $_SESSION['objednavka_id'] : 0;
@@ -10,27 +13,14 @@ $objednavka = null;
 $polozky = [];
 
 if ($ma_objednavku) {
-    $query = "SELECT * FROM objednavky WHERE objednavka_id = ?";
-    $stmt = mysqli_prepare($conn, $query);
-    mysqli_stmt_bind_param($stmt, "i", $objednavka_id);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    
-    if ($row = mysqli_fetch_assoc($result)) {
-        $objednavka = $row;
+    try {
+        $objednavka = Objednavka::findById($objednavka_id);
         
-        $query_polozky = "SELECT op.*, p.nazov, p.obrazok 
-                         FROM objednavka_produkty op
-                         JOIN produkty p ON op.produkt_id = p.produkt_id
-                         WHERE op.objednavka_id = ?";
-        $stmt_polozky = mysqli_prepare($conn, $query_polozky);
-        mysqli_stmt_bind_param($stmt_polozky, "i", $objednavka_id);
-        mysqli_stmt_execute($stmt_polozky);
-        $result_polozky = mysqli_stmt_get_result($stmt_polozky);
-        
-        while ($polozka = mysqli_fetch_assoc($result_polozky)) {
-            $polozky[] = $polozka;
+        if ($objednavka) {
+            $polozky = ObjednavkaPolozka::findByObjednavkaId($objednavka_id);
         }
+    } catch (Exception $e) {
+        echo "Chyba pri načítaní objednávky: " . $e->getMessage();
     }
 }
 
@@ -73,17 +63,17 @@ if(!require($file_path)) {
                                     <div class="col-md-6">
                                         <h5 class="text-white">Kontaktné údaje</h5>
                                         <p class="text-white">
-                                            <?php echo htmlspecialchars($objednavka['meno'] . ' ' . $objednavka['priezvisko']); ?><br>
-                                            Email: <?php echo htmlspecialchars($objednavka['email']); ?><br>
-                                            Telefón: <?php echo htmlspecialchars($objednavka['telefon']); ?>
+                                            <?php echo htmlspecialchars($objednavka->getMeno() . ' ' . $objednavka->getPriezvisko()); ?><br>
+                                            Email: <?php echo htmlspecialchars($objednavka->getEmail()); ?><br>
+                                            Telefón: <?php echo htmlspecialchars($objednavka->getTelefon()); ?>
                                         </p>
                                     </div>
                                     <div class="col-md-6">
                                         <h5 class="text-white">Adresa doručenia</h5>
                                         <p class="text-white">
-                                            <?php echo htmlspecialchars($objednavka['ulica'] . ' ' . $objednavka['cislo']); ?><br>
-                                            <?php echo htmlspecialchars($objednavka['mesto']); ?><br>
-                                            <?php echo htmlspecialchars($objednavka['psc']); ?>
+                                            <?php echo htmlspecialchars($objednavka->getUlica() . ' ' . $objednavka->getCislo()); ?><br>
+                                            <?php echo htmlspecialchars($objednavka->getMesto()); ?><br>
+                                            <?php echo htmlspecialchars($objednavka->getPsc()); ?>
                                         </p>
                                     </div>
                                 </div>
@@ -101,11 +91,12 @@ if(!require($file_path)) {
                                         </thead>
                                         <tbody>
                                             <?php foreach ($polozky as $polozka): ?>
+                                            <?php $produkt = $polozka->getProdukt(); ?>
                                             <tr>
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <?php if(!empty($polozka['obrazok'])): ?>
-                                                            <img src="images/products/<?php echo htmlspecialchars($polozka['obrazok']); ?>" 
+                                                        <?php if(!empty($produkt->getObrazok())): ?>
+                                                            <img src="images/products/<?php echo htmlspecialchars($produkt->getObrazok()); ?>" 
                                                                 class="img-fluid rounded me-2" style="width: 50px; height: 50px; object-fit: cover;">
                                                         <?php else: ?>
                                                             <div class="bg-secondary rounded d-flex align-items-center justify-content-center me-2" 
@@ -113,28 +104,28 @@ if(!require($file_path)) {
                                                                 <i class="bi bi-cup-hot text-white"></i>
                                                             </div>
                                                         <?php endif; ?>
-                                                        <?php echo htmlspecialchars($polozka['nazov']); ?>
+                                                        <?php echo htmlspecialchars($produkt->getNazov()); ?>
                                                     </div>
                                                 </td>
-                                                <td><?php echo $polozka['mnozstvo']; ?></td>
-                                                <td><?php echo number_format($polozka['cena_za_kus'], 2, ',', ' '); ?> €</td>
-                                                <td><?php echo number_format($polozka['celkova_suma'], 2, ',', ' '); ?> €</td>
+                                                <td><?php echo $polozka->getMnozstvo(); ?></td>
+                                                <td><?php echo number_format($polozka->getCenaZaKus(), 2, ',', ' '); ?> €</td>
+                                                <td><?php echo number_format($polozka->getCelkovaSuma(), 2, ',', ' '); ?> €</td>
                                             </tr>
                                             <?php endforeach; ?>
                                         </tbody>
                                         <tfoot>
                                             <tr>
                                                 <td colspan="3" class="text-end"><strong>Celková suma:</strong></td>
-                                                <td><strong><?php echo number_format($objednavka['celkova_suma'], 2, ',', ' '); ?> €</strong></td>
+                                                <td><strong><?php echo number_format($objednavka->getCelkovaSuma(), 2, ',', ' '); ?> €</strong></td>
                                             </tr>
                                         </tfoot>
                                     </table>
                                 </div>
                                 
-                                <?php if (!empty($objednavka['poznamka'])): ?>
+                                <?php if (!empty($objednavka->getPoznamka())): ?>
                                 <div class="mt-4">
                                     <h5 class="text-white">Poznámka k objednávke</h5>
-                                    <p class="text-white"><?php echo nl2br(htmlspecialchars($objednavka['poznamka'])); ?></p>
+                                    <p class="text-white"><?php echo nl2br(htmlspecialchars($objednavka->getPoznamka())); ?></p>
                                 </div>
                                 <?php endif; ?>
                             </div>

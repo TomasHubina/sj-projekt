@@ -1,6 +1,10 @@
 <?php
 session_start();
 require_once "db/config.php";
+require_once "db/model/Pouzivatel.php";
+require_once "db/model/Objednavka.php";
+require_once "db/model/ObjednavkaPolozka.php";
+require_once "db/model/Produkt.php";
 
 if(!isset($_SESSION['kosik']) || count($_SESSION['kosik']) == 0) {
     header("Location: kosik.php");
@@ -9,7 +13,7 @@ if(!isset($_SESSION['kosik']) || count($_SESSION['kosik']) == 0) {
 
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     $_SESSION['redirect_after_login'] = 'objednavka.php';
-    header("Location: prihlasenie.php");
+    header("Location: autentification/prihlasenie.php");
     exit;
 }
 
@@ -17,24 +21,20 @@ $ulica = $mesto = $psc = $telefon = $poznamka = $cislo = "";
 $ulica_err = $mesto_err = $psc_err = $telefon_err = $cislo_err = "";
 $platba = $dorucenie = "";
 $platba_err = $dorucenie_err = "";
+$meno = $priezvisko = $email = "";
 
-$sql = "SELECT * FROM pouzivatelia WHERE id = ?";
-if($stmt = mysqli_prepare($conn, $sql)) {
-    mysqli_stmt_bind_param($stmt, "i", $_SESSION["id"]);
-    if(mysqli_stmt_execute($stmt)) {
-        $result = mysqli_stmt_get_result($stmt);
-        if($user_data = mysqli_fetch_assoc($result)) {
-            $meno = $user_data['meno'] ?? "";
-            $priezvisko = $user_data['priezvisko'] ?? "";
-            $email = $user_data['email'] ?? "";
-            $ulica = isset($user_data['ulica']) ? $user_data['ulica'] : "";
-            $cislo = isset($user_data['cislo']) ? $user_data['cislo'] : "";
-            $mesto = isset($user_data['mesto']) ? $user_data['mesto'] : "";
-            $psc = isset($user_data['psc']) ? $user_data['psc'] : "";
-            $telefon = isset($user_data['telefon']) ? $user_data['telefon'] : "";
-        }
-    }
-    mysqli_stmt_close($stmt);
+
+$pouzivatel = Pouzivatel::findById($_SESSION["id"]);
+    
+if($pouzivatel) {
+    $meno = $pouzivatel->getMeno();
+    $priezvisko = $pouzivatel->getPriezvisko();
+    $email = $pouzivatel->getEmail();
+    $ulica = $pouzivatel->getUlica() ?? "";
+    $cislo = $pouzivatel->getCislo() ?? "";
+    $mesto = $pouzivatel->getMesto() ?? "";
+    $psc = $pouzivatel->getPsc() ?? "";
+    $telefon = $pouzivatel->getTelefon() ?? "";
 }
 
 $celkova_suma = 0;
@@ -88,71 +88,78 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     $poznamka = trim($_POST["poznamka"]);
     
     if(empty($ulica_err) && empty($cislo_err) && empty($mesto_err) && empty($psc_err) && empty($telefon_err) && empty($platba_err) && empty($dorucenie_err)) {
-        if(empty($user_data['ulica']) || empty($user_data['cislo']) || empty($user_data['mesto']) || empty($user_data['psc']) || empty($user_data['telefon'])) {
-            $update_sql = "UPDATE pouzivatelia SET ulica = ?, cislo = ?, mesto = ?, psc = ?, telefon = ? WHERE id = ?";
-            if($update_stmt = mysqli_prepare($conn, $update_sql)) {
-                mysqli_stmt_bind_param($update_stmt, "sssssi", $ulica, $cislo, $mesto, $psc, $telefon, $_SESSION["id"]);
-                mysqli_stmt_execute($update_stmt);
-                mysqli_stmt_close($update_stmt);
-            }
+        if($pouzivatel && (empty($pouzivatel->getUlica()) || empty($pouzivatel->getCislo()) || empty($pouzivatel->getMesto()) || empty($pouzivatel->getPsc()) || empty($pouzivatel->getTelefon()))) {
+            $pouzivatel->setUlica($ulica);
+            $pouzivatel->setCislo($cislo);
+            $pouzivatel->setMesto($mesto);
+            $pouzivatel->setPsc($psc);
+            $pouzivatel->setTelefon($telefon);
+            $pouzivatel->save();
         }
-        
-        mysqli_begin_transaction($conn);
         
         try {
-        $objednavka_sql = "INSERT INTO objednavky (pouzivatel_id, meno, priezvisko, email, celkova_suma, sposob_platby, sposob_dorucenia, ulica, cislo, mesto, psc, telefon, poznamka, stav) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Nová')";            
-        if($objednavka_stmt = mysqli_prepare($conn, $objednavka_sql)) {
-            mysqli_stmt_bind_param($objednavka_stmt, "isssdssssssss", $_SESSION["id"], $meno, $priezvisko, $email, $celkova_suma, $platba, $dorucenie, $ulica, $cislo, $mesto, $psc, $telefon, $poznamka);
-            mysqli_stmt_execute($objednavka_stmt);
-            $objednavka_id = mysqli_insert_id($conn); 
-            mysqli_stmt_close($objednavka_stmt);
-    
-    $polozky_sql = "INSERT INTO objednavka_produkty (objednavka_id, produkt_id, mnozstvo, cena_za_kus, celkova_suma) VALUES (?, ?, ?, ?, ?)";
-    if($polozky_stmt = mysqli_prepare($conn, $polozky_sql)) {
-        foreach($_SESSION['kosik'] as $id => $item) {
-            $produkt_id = $item['id']; 
-            $cena_za_kus = $item['cena'];
-            $mnozstvo = $item['mnozstvo'];
-            $celkova_suma_polozky = $cena_za_kus * $mnozstvo;
-            mysqli_stmt_bind_param($polozky_stmt, "iiidd", $objednavka_id, $produkt_id, $mnozstvo, $cena_za_kus, $celkova_suma_polozky);
-            mysqli_stmt_execute($polozky_stmt);
+            $objednavka = new Objednavka();
+            $objednavka->setPouzivatelId($_SESSION["id"]);
+            $objednavka->setMeno($meno);
+            $objednavka->setPriezvisko($priezvisko);
+            $objednavka->setEmail($email);
+            $objednavka->setCelkovaSuma($celkova_suma);
+            $objednavka->setSposobPlatby($platba);
+            $objednavka->setSposobDorucenia($dorucenie);
+            $objednavka->setUlica($ulica);
+            $objednavka->setCislo($cislo);
+            $objednavka->setMesto($mesto);
+            $objednavka->setPSC($psc);
+            $objednavka->setTelefon($telefon);
+            $objednavka->setPoznamka($poznamka);
+            $objednavka->setStav('Nová');
             
-            $update_stock_sql = "UPDATE produkty SET dostupne_mnozstvo = dostupne_mnozstvo - ? WHERE produkt_id = ?";
-            if($update_stock_stmt = mysqli_prepare($conn, $update_stock_sql)) {
-                mysqli_stmt_bind_param($update_stock_stmt, "ii", $mnozstvo, $produkt_id);
-                mysqli_stmt_execute($update_stock_stmt);
-                mysqli_stmt_close($update_stock_stmt);
-            }
-        }
-        mysqli_stmt_close($polozky_stmt);
-    }
+            Database::getInstance()->beginTransaction();
+            
+            $objednavka_id = $objednavka->save();
+            
+            if($objednavka_id) {
+                foreach($_SESSION['kosik'] as $id => $item) {
+                    $produkt_id = $item['id']; 
+                    $cena_za_kus = $item['cena'];
+                    $mnozstvo = $item['mnozstvo'];
+                    
+                    $polozka = new ObjednavkaPolozka();
+                    $polozka->setObjednavkaId($objednavka_id);
+                    $polozka->setProduktId($produkt_id);
+                    $polozka->setMnozstvo($mnozstvo);
+                    $polozka->setCenaZaKus($cena_za_kus);
+                    
+                    $polozka->save();
+                    
+                    $produkt = Produkt::findById($produkt_id);
+                    if($produkt) {
+                        $nove_mnozstvo = $produkt->getDostupneMnozstvo() - $mnozstvo;
+                        $produkt->setDostupneMnozstvo($nove_mnozstvo);
+                        $produkt->save();
+                    }
+                }
                 
-                mysqli_commit($conn);
+                Database::getInstance()->commit();
                 
                 $_SESSION['kosik'] = array();
-                
                 $_SESSION['objednavka_id'] = $objednavka_id;
-
+                
                 header("Location: thankyou.php");
                 exit;
             }
         } catch (Exception $e) {
-            mysqli_rollback($conn);
-            echo "Nastala chyba pri spracovaní objednávky: " . $e->getMessage();
+            Database::getInstance()->rollback();
+            $error_message = "Nastala chyba pri spracovaní objednávky: " . $e->getMessage();
         }
     }
 }
-
-mysqli_close($conn);
 ?>
 
 <!DOCTYPE html>
 <html lang="sk">
 <?php require_once "parts/head.php"; ?>
 <body>
-    
-    
     <main>
         <section class="about-section" id="section_objednavka">
             <?php require_once "parts/nav.php"; ?>
@@ -164,6 +171,14 @@ mysqli_close($conn);
                         <h2 class="text-white mb-4">Dokončenie objednávky</h2>
                     </div>
 
+                    <?php if(isset($error_message)): ?>
+                    <div class="col-12">
+                        <div class="alert alert-danger">
+                            <?php echo $error_message; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
                     <div class="col-md-8">
                         <div class="card bg-dark text-white mb-4">
                             <div class="card-header">
@@ -173,54 +188,56 @@ mysqli_close($conn);
                                 <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                                     <div class="mb-3">
                                         <h6 class="text-white">Informácie o objednávateľovi</h6>
-                                            <div class="row mb-3">
-                                                <div class="col-md-6">
-                                                    <label for="meno" class="form-label">Meno</label>
-                                                    <input type="text" id="meno" class="form-control bg-dark text-white" value="<?php echo $meno; ?>">
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label for="priezvisko" class="form-label">Priezvisko</label>
-                                                    <input type="text" id="priezvisko" class="form-control bg-dark text-white" value="<?php echo $priezvisko; ?>">
-                                                </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="meno" class="form-label">Meno</label>
+                                                <input type="text" id="meno" class="form-control bg-dark text-white" value="<?php echo htmlspecialchars($meno); ?>" readonly>
+                                                <input type="hidden" name="meno" value="<?php echo htmlspecialchars($meno); ?>">
                                             </div>
-                                            <div class="mb-3">
-                                                <label for="email" class="form-label">Email</label>
-                                                <input type="email" id="email" class="form-control bg-dark text-white" value="<?php echo $email; ?>">
+                                            <div class="col-md-6">
+                                                <label for="priezvisko" class="form-label">Priezvisko</label>
+                                                <input type="text" id="priezvisko" class="form-control bg-dark text-white" value="<?php echo htmlspecialchars($priezvisko); ?>" readonly>
+                                                <input type="hidden" name="priezvisko" value="<?php echo htmlspecialchars($priezvisko); ?>">
                                             </div>
                                         </div>
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="email" id="email" class="form-control bg-dark text-white" value="<?php echo htmlspecialchars($email); ?>" readonly>
+                                            <input type="hidden" name="email" value="<?php echo htmlspecialchars($email); ?>">
+                                        </div>
+                                    </div>
         
                                     <hr class="my-4 border-secondary">
         
                                     <div class="mb-3">
                                         <h6 class="text-white">Dodacie údaje</h6>
                                         <label for="ulica" class="form-label">Ulica</label>
-                                        <input type="text" name="ulica" id="ulica" class="form-control bg-dark text-white <?php echo (!empty($ulica_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $ulica; ?>" required>
+                                        <input type="text" name="ulica" id="ulica" class="form-control bg-dark text-white <?php echo (!empty($ulica_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($ulica); ?>" required>
                                         <span class="invalid-feedback"><?php echo $ulica_err; ?></span>
                                     </div>
 
-                                    <div class="col-md-4">
+                                    <div class="mb-3">
                                         <label for="cislo" class="form-label">Číslo domu</label>
-                                        <input type="text" name="cislo" id="cislo" class="form-control bg-dark text-white <?php echo (!empty($cislo_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $cislo ?? ''; ?>" required>
-                                        <span class="invalid-feedback"><?php echo $cislo_err ?? ''; ?></span>
+                                        <input type="text" name="cislo" id="cislo" class="form-control bg-dark text-white <?php echo (!empty($cislo_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($cislo); ?>" required>
+                                        <span class="invalid-feedback"><?php echo $cislo_err; ?></span>
                                     </div>
                                 
-            
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="mesto" class="form-label">Mesto</label>
-                                        <input type="text" name="mesto" id="mesto" class="form-control bg-dark text-white <?php echo (!empty($mesto_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $mesto; ?>" required>
-                                        <span class="invalid-feedback"><?php echo $mesto_err; ?></span>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="mesto" class="form-label">Mesto</label>
+                                            <input type="text" name="mesto" id="mesto" class="form-control bg-dark text-white <?php echo (!empty($mesto_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($mesto); ?>" required>
+                                            <span class="invalid-feedback"><?php echo $mesto_err; ?></span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="psc" class="form-label">PSČ</label>
+                                            <input type="text" name="psc" id="psc" class="form-control bg-dark text-white <?php echo (!empty($psc_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($psc); ?>" required>
+                                            <span class="invalid-feedback"><?php echo $psc_err; ?></span>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="psc" class="form-label">PSČ</label>
-                                        <input type="text" name="psc" id="psc" class="form-control bg-dark text-white <?php echo (!empty($psc_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $psc; ?>" required>
-                                        <span class="invalid-feedback"><?php echo $psc_err; ?></span>
-                                    </div>
-                                </div>
 
                                     <div class="mb-3">
                                         <label for="telefon" class="form-label">Telefón</label>
-                                        <input type="tel" name="telefon" id="telefon" class="form-control bg-dark text-white <?php echo (!empty($telefon_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $telefon; ?>" required>
+                                        <input type="tel" name="telefon" id="telefon" class="form-control bg-dark text-white <?php echo (!empty($telefon_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($telefon); ?>" required>
                                         <span class="invalid-feedback"><?php echo $telefon_err; ?></span>
                                     </div>
                                     
@@ -278,7 +295,7 @@ mysqli_close($conn);
                                     
                                     <div class="mb-3">
                                         <label for="poznamka" class="form-label">Poznámka k objednávke (nepovinné)</label>
-                                        <textarea name="poznamka" id="poznamka" class="form-control bg-dark text-white" rows="3"><?php echo $poznamka; ?></textarea>
+                                        <textarea name="poznamka" id="poznamka" class="form-control bg-dark text-white" rows="3"><?php echo htmlspecialchars($poznamka); ?></textarea>
                                     </div>
                             </div>
                         </div>
@@ -295,15 +312,15 @@ mysqli_close($conn);
                                         <li class="list-group-item d-flex justify-content-between lh-sm bg-dark text-white border-secondary">
                                             <div>
                                                 <h6 class="my-0"><?php echo htmlspecialchars($item['nazov']); ?></h6>
-                                                <small class="text-light"><?php echo $item['mnozstvo']; ?> ks × <?php echo number_format($item['cena'], 2); ?> €</small>
+                                                <small class="text-light"><?php echo $item['mnozstvo']; ?> ks × <?php echo number_format($item['cena'], 2, ',', ' '); ?> €</small>
                                             </div>
-                                            <span class="text-light"><?php echo number_format($item['cena'] * $item['mnozstvo'], 2); ?> €</span>
+                                            <span class="text-light"><?php echo number_format($item['cena'] * $item['mnozstvo'], 2, ',', ' '); ?> €</span>
                                         </li>
                                     <?php endforeach; ?>
 
                                     <li class="list-group-item d-flex justify-content-between bg-dark text-white border-secondary">
                                         <span>Spolu</span>
-                                        <strong><?php echo number_format($celkova_suma, 2); ?> €</strong>
+                                        <strong><?php echo number_format($celkova_suma, 2, ',', ' '); ?> €</strong>
                                     </li>
                                 </ul>
                             </div>
