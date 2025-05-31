@@ -5,6 +5,8 @@ require_once "db/model/Pouzivatel.php";
 require_once "db/model/Objednavka.php";
 require_once "db/model/ObjednavkaPolozka.php";
 require_once "db/model/Produkt.php";
+require_once "functions/jsAcss.php";
+
 
 if(!isset($_SESSION['kosik']) || count($_SESSION['kosik']) == 0) {
     header("Location: kosik.php");
@@ -344,5 +346,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     </main>
     
     <?php require_once "parts/footer.php"; ?>
+    <?php js(); ?>
 </body>
 </html>

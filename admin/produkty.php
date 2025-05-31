@@ -9,6 +9,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_S
 require_once "../db/config.php";
 require_once "../functions/admin_css.php";
 require_once "../functions/admin_parts.php";
+require_once "../functions/jsAcss.php";
 require_once "../db/model/Produkt.php";
 
 $nazov = $popis = $cena = $mnozstvo = $obrazok = "";
@@ -187,15 +188,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="sk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Produkty - Admin Panel</title>
-    <link rel="stylesheet" href="../css/bootstrap.min.css">
-    <link rel="stylesheet" href="../css/bootstrap-icons.css">
-    <link href="../css/tooplate-barista.css" rel="stylesheet">
-    <?php admin_css(); ?>
-</head>
+<?php admin_head(); ?>
 <body>
     <?php admin_navbar(); ?>
 
@@ -341,11 +334,7 @@ try {
         </div>
     </div>
 
-    <!-- JAVASCRIPT FILES -->
-    <script src="../js/jquery.min.js"></script>
-    <script src="../js/bootstrap.min.js"></script>
-    <script src="../js/jquery.sticky.js"></script>
-    <script src="../js/custom.js"></script>
+    <?php js(); ?>
     
     <script>
     document.addEventListener('DOMContentLoaded', function() {

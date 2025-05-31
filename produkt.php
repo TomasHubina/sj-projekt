@@ -2,6 +2,8 @@
 session_start();
 require_once "db/config.php";
 require_once "db/model/Produkt.php";
+require_once "functions/jsAcss.php";
+
 
 if(!isset($_GET["id"]) || empty($_GET["id"])) {
     header("location: produkty.php");
@@ -170,11 +172,6 @@ $dostupne_mnozstvo = $produkt->getDostupneMnozstvo();
     
     <?php require_once "parts/footer.php"; ?>
 
-    <!-- JAVASCRIPT FILES -->
-    <script src="js/jquery.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/jquery.sticky.js"></script>
-    <script src="js/click-scroll.js"></script>
-    <script src="js/custom.js"></script>
+    <?php js(); ?>
 </body>
 </html>

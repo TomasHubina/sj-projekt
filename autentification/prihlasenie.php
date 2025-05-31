@@ -60,20 +60,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
 <!doctype html>
 <html lang="sk">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Prihlásenie - Gold Coffee</title>
-    
-    <!-- CSS FILES -->                
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200;0,400;0,600;0,700;1,200;1,700&display=swap" rel="stylesheet">
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-    <link href="../css/bootstrap-icons.css" rel="stylesheet">
-    <link href="../css/vegas.min.css" rel="stylesheet">
-    <link href="../css/tooplate-barista.css" rel="stylesheet">
-</head>
+<?php require_once "../parts/head.php"; ?>
 <body>
     <div class="container py-5">
         <div class="row justify-content-center">

@@ -14,6 +14,7 @@ if(!isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] != 1){
 require_once "../db/config.php";
 require_once "../functions/admin_css.php";
 require_once "../functions/admin_parts.php";
+require_once "../functions/jsAcss.php";
 require_once "../db/model/Pouzivatel.php";
 
 $pouzivatelia = Pouzivatel::getAll();
@@ -21,15 +22,7 @@ $pouzivatelia = Pouzivatel::getAll();
 
 <!doctype html>
 <html lang="sk">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Používatelia - Admin Panel</title>
-    <link rel="stylesheet" href="../css/bootstrap.min.css">
-    <link rel="stylesheet" href="../css/bootstrap-icons.css">
-    <link href="../css/tooplate-barista.css" rel="stylesheet">
-    <?php admin_css(); ?>
-</head>
+<?php admin_head(); ?>
 <body>
     <?php admin_navbar(); ?>
 
@@ -70,7 +63,7 @@ $pouzivatelia = Pouzivatel::getAll();
                                                     <tbody>
                                                         <?php foreach($pouzivatelia as $pouzivatel): ?>
                                                             <tr>
-                                                                <td><?php $pouzivatel->getId(); ?></td>
+                                                                <td><?php echo htmlspecialchars($pouzivatel->getId()); ?></td>
                                                                 <td><?php echo htmlspecialchars($pouzivatel->getMeno()); ?></td>
                                                                 <td><?php echo htmlspecialchars($pouzivatel->getPriezvisko()); ?></td>
                                                                 <td><?php echo htmlspecialchars($pouzivatel->getEmail()); ?></td>
@@ -111,9 +104,6 @@ $pouzivatelia = Pouzivatel::getAll();
         </section>
     </main>
 
-    <!-- JAVASCRIPT FILES -->
-    <script src="../js/jquery.min.js"></script>
-    <script src="../js/bootstrap.min.js"></script>
-    <script src="../js/custom.js"></script>
+    <?php js(); ?>
 </body>
 </html>

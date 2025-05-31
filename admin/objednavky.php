@@ -14,6 +14,7 @@ if(!isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] != 1){
 require_once "../db/config.php";
 require_once "../functions/admin_css.php";
 require_once "../functions/admin_parts.php";
+require_once "../functions/jsAcss.php";
 require_once "../db/model/Objednavka.php";
 require_once "../db/model/ObjednavkaPolozka.php";
 require_once "../db/model/Produkt.php";
@@ -88,28 +89,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="sk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Správa objednávok - Admin Panel</title>
-    <link rel="stylesheet" href="../css/bootstrap.min.css">
-    <link rel="stylesheet" href="../css/bootstrap-icons.css">
-    <link href="../css/tooplate-barista.css" rel="stylesheet">
-    <?php admin_css(); ?>
-    <style>
-        .status-badge {
-            font-size: 0.85rem;
-            padding: 0.35em 0.65em;
-        }
-        .order-detail-card {
-            background-color: rgba(33, 37, 41, 0.85);
-            margin-bottom: 1.5rem;
-        }
-        .table-responsive {
-            overflow-x: auto;
-        }
-    </style>
-</head>
+<?php admin_head(); ?>
 <body>
     
     <?php admin_navbar(); ?>
@@ -267,7 +247,7 @@ try {
                                                                 <tr>
                                                                     <td>
                                                                         <?php if($produkt && $produkt->getObrazok()): ?>
-                                                                            <img src="images/products/<?php echo $produkt->getObrazok(); ?>" alt="<?php echo $produkt->getNazov(); ?>" width="40" class="me-2">
+                                                                            <img src="../images/products/<?php echo $produkt->getObrazok(); ?>" alt="<?php echo $produkt->getNazov(); ?>" width="40" class="me-2">
                                                                         <?php endif; ?>
                                                                         <?php echo $produkt->getNazov(); ?>
                                                                     </td>
@@ -384,10 +364,6 @@ try {
         </section>
     </main>
 
-    <!-- JAVASCRIPT FILES -->
-    <script src="../js/jquery.min.js"></script>
-    <script src="../js/bootstrap.min.js"></script>
-    <script src="../js/jquery.sticky.js"></script>
-    <script src="../js/custom.js"></script>
+    <?php js(); ?>
 </body>
 </html>

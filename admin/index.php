@@ -14,6 +14,7 @@ if(!isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] != 1){
 require_once "../db/config.php";
 require_once "../functions/admin_css.php";
 require_once "../functions/admin_parts.php";
+require_once "../functions/jsAcss.php";
 require_once "../db/model/Objednavka.php";
 require_once "../db/model/Produkt.php";
 require_once "../db/model/Pouzivatel.php";
@@ -36,15 +37,7 @@ $pouzivatelia = count($pouzivatelia_list);
 
 <!DOCTYPE html>
 <html lang="sk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
-    <link rel="stylesheet" href="../css/bootstrap.min.css">
-    <link rel="stylesheet" href="../css/bootstrap-icons.css">
-    <link href="../css/tooplate-barista.css" rel="stylesheet">
-    <?php admin_css(); ?>
-</head>
+<?php admin_head(); ?>
 <body>
     
     <?php admin_navbar(); ?>
@@ -267,10 +260,6 @@ $pouzivatelia = count($pouzivatelia_list);
         </section>
     </main>
 
-    <!-- JAVASCRIPT FILES -->
-    <script src="../js/jquery.min.js"></script>
-    <script src="../js/bootstrap.min.js"></script>
-    <script src="../js/jquery.sticky.js"></script>
-    <script src="../js/custom.js"></script>
+    <?php js(); ?>
 </body>
 </html>

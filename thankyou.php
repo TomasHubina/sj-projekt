@@ -5,6 +5,7 @@ require_once "db/config.php";
 require_once "db/model/Objednavka.php";
 require_once "db/model/ObjednavkaPolozka.php";
 require_once "db/model/Produkt.php";
+require_once "functions/jsAcss.php";
 
 $ma_objednavku = isset($_SESSION['objednavka_id']) && !empty($_SESSION['objednavka_id']);
 $objednavka_id = $ma_objednavku ? $_SESSION['objednavka_id'] : 0;
@@ -144,8 +145,6 @@ if(!require($file_path)) {
     </main>
     
     <?php include "parts/footer.php"; ?>
-    <script src="js/jquery.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/custom.js"></script>
+    <?php js(); ?>
 </body>
 </html>

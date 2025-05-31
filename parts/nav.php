@@ -1,12 +1,9 @@
 <?php
-// Kontrola, či je session inicializovaná
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Pomocná funkcia pre relatívne cesty
 function getBasePath() {
-    // Detekuje, či je nav.php volaný z podadresára alebo z hlavného adresára
     $scriptName = $_SERVER['SCRIPT_NAME'];
     return (strpos($scriptName, '/admin/') !== false || strpos($scriptName, '/autentification/') !== false) 
         ? '../' : '';
@@ -75,7 +72,6 @@ $basePath = getBasePath();
                 <a class="btn custom-btn custom-border-btn ms-2" href="<?php echo $basePath; ?>kosik.php">
                     <i class="bi bi-cart"></i> Košík
                     <?php
-                    // Dynamicky vypočítaný počet položiek v košíku alebo skrytý, ak nie je implementované
                     if (isset($_SESSION['kosik']) && is_array($_SESSION['kosik']) && count($_SESSION['kosik']) > 0): ?>
                         <span class="badge bg-dark rounded-pill ms-1"><?php echo count($_SESSION['kosik']); ?></span>
                     <?php endif; ?>

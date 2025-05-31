@@ -2,6 +2,7 @@
 session_start();
 require_once "db/config.php";
 require_once "db/model/Produkt.php";
+require_once "functions/jsAcss.php";
 
 if(!isset($_SESSION['kosik'])) {
     $_SESSION['kosik'] = array();
@@ -170,12 +171,13 @@ foreach($_SESSION['kosik'] as $item) {
     </main>
     
     <?php require_once "parts/footer.php"; ?>
+    <?php js(); ?>
 
-    <!-- JAVASCRIPT FILES -->
+    <!-- JAVASCRIPT FILES 
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/jquery.sticky.js"></script>
     <script src="js/click-scroll.js"></script>
-    <script src="js/custom.js"></script>
+    <script src="js/custom.js"></script>-->
 </body>
 </html>

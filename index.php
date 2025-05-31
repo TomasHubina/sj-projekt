@@ -3,6 +3,7 @@
 <?php
     require_once "db/config.php";
     require_once "db/model/Produkt.php";
+    require_once "functions/jsAcss.php";
 
     $file_path = "parts/head.php";
 if(!require($file_path)) {
@@ -404,13 +405,7 @@ if(!require($file_path)) {
             ?>  
             </main>
 
-        <!-- JAVASCRIPT FILES -->
-        <script src="js/jquery.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <script src="js/jquery.sticky.js"></script>
-        <script src="js/click-scroll.js"></script>
-        <script src="js/vegas.min.js"></script>
-        <script src="js/custom.js"></script>
+        <?php js(); ?>
 
     </body>
 </html>

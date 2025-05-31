@@ -1,5 +1,5 @@
 <?php
-
+/*
 function admin_css() {
     echo '<style>
     .admin-sidebar {
@@ -47,5 +47,5 @@ function admin_css() {
             border-color: rgba(255, 255, 255, 0.1);
         }
         </style>';
-}
+}*/
 ?>
