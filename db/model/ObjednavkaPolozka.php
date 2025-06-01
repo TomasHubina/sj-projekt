@@ -155,13 +155,5 @@ class ObjednavkaPolozka {
         
         return true;
     }
-    
-    public function getFormatovanaCenaZaKus() {
-        return number_format($this->cena_za_kus, 2, ',', ' ') . ' €';
-    }
-    
-    public function getFormatovanaCelkovaSuma() {
-        return number_format($this->celkova_suma, 2, ',', ' ') . ' €';
-    }
 }
 ?>
