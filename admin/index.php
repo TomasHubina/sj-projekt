@@ -12,7 +12,6 @@ if(!isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] != 1){
 }
 
 require_once "../db/config.php";
-require_once "../functions/admin_css.php";
 require_once "../functions/admin_parts.php";
 require_once "../functions/jsAcss.php";
 require_once "../db/model/Objednavka.php";

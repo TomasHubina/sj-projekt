@@ -7,7 +7,6 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_S
 }
 
 require_once "../db/config.php";
-require_once "../functions/admin_css.php";
 require_once "../functions/admin_parts.php";
 require_once "../functions/jsAcss.php";
 require_once "../db/model/Produkt.php";
