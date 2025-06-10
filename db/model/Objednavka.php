@@ -112,21 +112,6 @@ class Objednavka {
         return $stavy_pocty;
     }
     
-    public static function findByUserId($userId) {
-        $db = Database::getInstance();
-        $data = $db->fetchAll(
-            "SELECT * FROM objednavky WHERE pouzivatel_id = ? ORDER BY objednavka_id DESC", 
-            [$userId]
-        );
-        
-        $objednavky = [];
-        foreach ($data as $objednavka_data) {
-            $objednavky[] = new Objednavka($objednavka_data);
-        }
-        
-        return $objednavky;
-    }
-    
     public function save() {
         if ($this->objednavka_id) {
             return $this->db->query(
@@ -190,57 +175,11 @@ class Objednavka {
         return $this->polozky;
     }
     
-    public function pridatPolozku($produkt_id, $mnozstvo, $cena_za_kus) {
-        if (!$this->objednavka_id) {
-            throw new Exception("Objednávka musí byť najprv uložená pred pridaním položiek");
-        }
-        
-        $celkova_suma_polozky = $mnozstvo * $cena_za_kus;
-        
-        $this->db->query(
-            "INSERT INTO objednavka_produkty (objednavka_id, produkt_id, mnozstvo, cena_za_kus, celkova_suma)
-            VALUES (?, ?, ?, ?, ?)",
-            [$this->objednavka_id, $produkt_id, $mnozstvo, $cena_za_kus, $celkova_suma_polozky]
-        );
-        
-        $this->celkova_suma += $celkova_suma_polozky;
-        $this->db->query(
-            "UPDATE objednavky SET celkova_suma = ? WHERE objednavka_id = ?",
-            [$this->celkova_suma, $this->objednavka_id]
-        );
-        
-        $this->db->query(
-            "UPDATE produkty SET dostupne_mnozstvo = dostupne_mnozstvo - ? WHERE produkt_id = ?",
-            [$mnozstvo, $produkt_id]
-        );
-        
-        return true;
-    }
-    
-    public function zmenitStav($novy_stav) {
-        if ($this->objednavka_id) {
-            $this->stav = $novy_stav;
-            return $this->db->query(
-                "UPDATE objednavky SET stav = ? WHERE objednavka_id = ?",
-                [$novy_stav, $this->objednavka_id]
-            );
-        }
-        return false;
-    }
-    
     public function getPouzivatel() {
         if ($this->pouzivatel_id) {
             return Pouzivatel::findById($this->pouzivatel_id);
         }
         return null;
-    }
-    
-    public function delete() {
-        if ($this->objednavka_id) {
-            $this->db->query("DELETE FROM objednavka_produkty WHERE objednavka_id = ?", [$this->objednavka_id]);
-            return $this->db->query("DELETE FROM objednavky WHERE objednavka_id = ?", [$this->objednavka_id]);
-        }
-        return false;
     }
 }
 ?>

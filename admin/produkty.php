@@ -1,8 +1,14 @@
 <?php
 session_start();
 
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] != 1) {
-    header("location: ../authentification/prihlasenie.php");
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+    $_SESSION['redirect_after_login'] = 'admin/produkty.php';
+    header("location: ../autentification/prihlasenie.php");
+    exit;
+}
+
+if(!isset($_SESSION["je_admin"]) || $_SESSION["je_admin"] != 1){
+    header("location: ../index.php");
     exit;
 }
 

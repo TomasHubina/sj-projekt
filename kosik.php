@@ -1,5 +1,12 @@
 <?php
 session_start();
+
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+    $_SESSION['redirect_after_login'] = 'kosik.php';
+    header("Location: autentification/prihlasenie.php");
+    exit;
+}
+
 require_once "db/config.php";
 require_once "db/model/Produkt.php";
 require_once "functions/jsAcss.php";
@@ -172,12 +179,5 @@ foreach($_SESSION['kosik'] as $item) {
     
     <?php require_once "parts/footer.php"; ?>
     <?php js(); ?>
-
-    <!-- JAVASCRIPT FILES 
-    <script src="js/jquery.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/jquery.sticky.js"></script>
-    <script src="js/click-scroll.js"></script>
-    <script src="js/custom.js"></script>-->
 </body>
 </html>

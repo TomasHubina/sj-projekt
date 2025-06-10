@@ -87,17 +87,6 @@ class Produkt {
     return $produkty;
 }
     
-    public function znizitMnozstvo($mnozstvo) {
-        if ($this->dostupne_mnozstvo >= $mnozstvo) {
-            $this->dostupne_mnozstvo -= $mnozstvo;
-            return $this->db->query(
-                "UPDATE produkty SET dostupne_mnozstvo = ? WHERE produkt_id = ?",
-                [$this->dostupne_mnozstvo, $this->produkt_id]
-            );
-        }
-        return false;
-    }
-    
     public function delete() {
         if ($this->produkt_id) {
             return $this->db->query("DELETE FROM produkty WHERE produkt_id = ?", [$this->produkt_id]);

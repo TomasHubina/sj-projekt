@@ -2,6 +2,7 @@
 session_start();
 
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] != true){
+    $_SESSION['redirect_after_login'] = 'admin/objednavky.php';
     header("location: ../autentification/prihlasenie.php");
     exit;
 }

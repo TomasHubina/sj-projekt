@@ -2,6 +2,7 @@
 session_start();
 
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+    $_SESSION['redirect_after_login'] = 'admin/index.php';
     header("location: ../autentification/prihlasenie.php");
     exit;
 }
@@ -155,9 +156,11 @@ $pouzivatelia = count($pouzivatelia_list);
                                                             echo "<td>".number_format($objednavka->getCelkovaSuma(), 2, ',', ' ')." €</td>";
                                                             
                                                             $stav_trieda = "secondary";
-                                                            if($objednavka->getStav() == 'vybavená') $stav_trieda = "success";
-                                                            else if($objednavka->getStav() == 'zrušená') $stav_trieda = "danger";
-                                                            else if($objednavka->getStav() == 'spracováva sa') $stav_trieda = "warning";
+                                                            if($objednavka->getStav() == 'Nová') $stav_trieda = "info";
+                                                            if($objednavka->getStav() == 'Spracovaná') $stav_trieda = "primary";
+                                                            if($objednavka->getStav() == 'Odoslaná') $stav_trieda = "warning";
+                                                            if($objednavka->getStav() == 'Doručená') $stav_trieda = "success";
+                                                            if($objednavka->getStav() == 'Zrušená') $stav_trieda = "danger";
                                                             
                                                             echo "<td><span class='badge bg-".$stav_trieda."'>".$objednavka->getStav()."</span></td>";
                                                             echo "</tr>";

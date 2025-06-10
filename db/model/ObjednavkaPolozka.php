@@ -54,19 +54,6 @@ class ObjednavkaPolozka {
         $this->celkova_suma = $this->mnozstvo * $this->cena_za_kus;
     }
     
-    public static function findById($id) {
-        $db = Database::getInstance();
-        $data = $db->fetchOne(
-            "SELECT op.*, p.nazov, p.obrazok 
-            FROM objednavka_produkty op
-            LEFT JOIN produkty p ON op.produkt_id = p.produkt_id
-            WHERE op.id = ?", 
-            [$id]
-        );
-        
-        return $data ? new ObjednavkaPolozka($data) : null;
-    }
-    
     public static function findByObjednavkaId($objednavka_id) {
         $db = Database::getInstance();
         $data = $db->fetchAll(
@@ -113,47 +100,11 @@ class ObjednavkaPolozka {
         }
     }
     
-    public function delete() {
-        if ($this->id) {
-            return $this->db->query("DELETE FROM objednavka_produkty WHERE id = ?", [$this->id]);
-        }
-        return false;
-    }
-    
     public function getProdukt() {
         if ($this->produkt_id) {
             return Produkt::findById($this->produkt_id);
         }
         return null;
-    }
-    
-    public function aktualizovatMnozstvo($nove_mnozstvo) {
-        $rozdiel = $nove_mnozstvo - $this->mnozstvo;
-        $this->mnozstvo = $nove_mnozstvo;
-        $this->updateCelkovaSuma();
-        
-        $this->db->query(
-            "UPDATE objednavka_produkty SET mnozstvo = ?, celkova_suma = ? WHERE id = ?",
-            [$this->mnozstvo, $this->celkova_suma, $this->id]
-        );
-        
-        $this->db->query(
-            "UPDATE objednavky 
-            SET celkova_suma = (
-                SELECT SUM(celkova_suma) FROM objednavka_produkty WHERE objednavka_id = ?
-            )
-            WHERE objednavka_id = ?",
-            [$this->objednavka_id, $this->objednavka_id]
-        );
-        
-        if ($rozdiel != 0) {
-            $this->db->query(
-                "UPDATE produkty SET dostupne_mnozstvo = dostupne_mnozstvo - ? WHERE produkt_id = ?",
-                [$rozdiel, $this->produkt_id]
-            );
-        }
-        
-        return true;
     }
 }
 ?>

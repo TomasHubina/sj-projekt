@@ -30,9 +30,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         try {
             $pouzivatel = Pouzivatel::verifyLogin($email, $heslo);
             
-            if ($pouzivatel) {
-                //session_start();
-                            
+            if ($pouzivatel) {                            
                 $_SESSION["loggedin"] = true;
                 $_SESSION["id"] = $pouzivatel->getId();
                 $_SESSION["meno"] = $pouzivatel->getMeno();
