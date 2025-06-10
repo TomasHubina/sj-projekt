@@ -3,7 +3,7 @@
 <?php
     require_once "db/config.php";
     require_once "db/model/Produkt.php";
-    require_once "functions/jsAcss.php";
+    require_once "functions/js.php";
 
     $file_path = "parts/head.php";
 if(!require($file_path)) {

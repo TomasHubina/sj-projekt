@@ -5,7 +5,7 @@ require_once "db/model/Pouzivatel.php";
 require_once "db/model/Objednavka.php";
 require_once "db/model/ObjednavkaPolozka.php";
 require_once "db/model/Produkt.php";
-require_once "functions/jsAcss.php";
+require_once "functions/js.php";
 
 
 if(!isset($_SESSION['kosik']) || count($_SESSION['kosik']) == 0) {
@@ -193,18 +193,18 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
                                         <div class="row mb-3">
                                             <div class="col-md-6">
                                                 <label for="meno" class="form-label">Meno</label>
-                                                <input type="text" id="meno" class="form-control bg-dark text-white" value="<?php echo htmlspecialchars($meno); ?>" readonly>
+                                                <input type="text" id="meno" class="form-control bg-dark text-white" value="<?php echo htmlspecialchars($meno); ?>" required>
                                                 <input type="hidden" name="meno" value="<?php echo htmlspecialchars($meno); ?>">
                                             </div>
                                             <div class="col-md-6">
                                                 <label for="priezvisko" class="form-label">Priezvisko</label>
-                                                <input type="text" id="priezvisko" class="form-control bg-dark text-white" value="<?php echo htmlspecialchars($priezvisko); ?>" readonly>
+                                                <input type="text" id="priezvisko" class="form-control bg-dark text-white" value="<?php echo htmlspecialchars($priezvisko); ?>" required>
                                                 <input type="hidden" name="priezvisko" value="<?php echo htmlspecialchars($priezvisko); ?>">
                                             </div>
                                         </div>
                                         <div class="mb-3">
                                             <label for="email" class="form-label">Email</label>
-                                            <input type="email" id="email" class="form-control bg-dark text-white" value="<?php echo htmlspecialchars($email); ?>" readonly>
+                                            <input type="email" id="email" class="form-control bg-dark text-white" value="<?php echo htmlspecialchars($email); ?>" required>
                                             <input type="hidden" name="email" value="<?php echo htmlspecialchars($email); ?>">
                                         </div>
                                     </div>

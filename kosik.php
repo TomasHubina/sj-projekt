@@ -9,7 +9,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 
 require_once "db/config.php";
 require_once "db/model/Produkt.php";
-require_once "functions/jsAcss.php";
+require_once "functions/js.php";
 
 if(!isset($_SESSION['kosik'])) {
     $_SESSION['kosik'] = array();

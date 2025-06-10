@@ -2,7 +2,7 @@
 session_start();
 require_once "db/config.php";
 require_once "db/model/Produkt.php";
-require_once "functions/jsAcss.php";
+require_once "functions/js.php";
 
 try {
     $produkty = Produkt::getAll();
